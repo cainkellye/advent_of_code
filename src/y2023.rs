@@ -36,23 +36,22 @@ fn day03_1() {}
 fn day03_2() {}
 
 fn day02_1() {
-    let limit = (12, 13, 14);
+    let limit = [12, 13, 14];
     let sum: u32 = iter_lines_from("res/2023/input02.txt")
         .map(|l| {
             //Game 5: 1 red, 3 blue, 15 green; 13 green, 2 blue; 6 green; 6 green, 8 blue; 4 green, 9 blue, 1 red
-            l.split_once(':')
+            l.split_once(": ")
                 .expect("input error")
                 .1
-                .split(';')
+                .split("; ")
                 .map(|set_line| {
-                    set_line.split(',').fold((0, 0, 0), |mut set, part| {
-                        match part.trim().split_once(' ') {
-                            Some((num, "red")) => set.0 += num.parse::<u32>().unwrap(),
-                            Some((num, "green")) => set.1 += num.parse::<u32>().unwrap(),
-                            Some((num, "blue")) => set.2 += num.parse::<u32>().unwrap(),
+                    set_line.split(", ").fold([0, 0, 0], |[r, g, b], part| {
+                        match part.split_once(' ') {
+                            Some((num, "red")) => [num.parse::<usize>().unwrap(), g, b],
+                            Some((num, "green")) => [r, num.parse::<usize>().unwrap(), b],
+                            Some((num, "blue")) => [r, g, num.parse::<usize>().unwrap()],
                             _ => unreachable!("Part"),
                         }
-                        set
                     })
                 })
                 .collect_vec()
@@ -60,7 +59,7 @@ fn day02_1() {
         .enumerate()
         .filter(|(_, game)| {
             game.iter()
-                .all(|set| set.0 <= limit.0 && set.1 <= limit.1 && set.2 <= limit.2)
+                .all(|set| set.iter().zip(limit.iter()).all(|(s, l)| s <= l))
         })
         .map(|(idx, _)| idx as u32 + 1)
         .sum();
@@ -71,19 +70,18 @@ fn day02_2() {
     let sum: usize = iter_lines_from("res/2023/input02.txt")
         .map(|l| {
             //Game 5: 1 red, 3 blue, 15 green; 13 green, 2 blue; 6 green; 6 green, 8 blue; 4 green, 9 blue, 1 red
-            l.split_once(':')
+            l.split_once(": ")
                 .expect("input error")
                 .1
-                .split(';')
+                .split("; ")
                 .map(|set_line| {
-                    set_line.split(',').fold([0, 0, 0], |mut set, part| {
-                        match part.trim().split_once(' ') {
-                            Some((num, "red")) => set[0] += num.parse::<usize>().unwrap(),
-                            Some((num, "green")) => set[1] += num.parse::<usize>().unwrap(),
-                            Some((num, "blue")) => set[2] += num.parse::<usize>().unwrap(),
+                    set_line.split(", ").fold([0, 0, 0], |[r, g, b], part| {
+                        match part.split_once(' ') {
+                            Some((num, "red")) => [num.parse::<usize>().unwrap(), g, b],
+                            Some((num, "green")) => [r, num.parse::<usize>().unwrap(), b],
+                            Some((num, "blue")) => [r, g, num.parse::<usize>().unwrap()],
                             _ => unreachable!("Part"),
                         }
-                        set
                     })
                 })
                 .collect_vec()
