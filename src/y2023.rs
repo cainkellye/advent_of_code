@@ -1,5 +1,3 @@
-use std::cmp::Ordering;
-
 use super::iter_lines_from;
 use itertools::Itertools;
 
