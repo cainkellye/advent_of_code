@@ -51,21 +51,17 @@ fn parse_input(input_path: &str) -> (Vec<SymbolOccurance>, Vec<NumberOccurance>)
     for (line_idx, line) in iter_lines_from(input_path).enumerate() {
         push_number(&mut num, &mut numbers, line_idx.max(1) - 1, num_start_idx);
         for (char_idx, ch) in line.chars().enumerate() {
-            match ch {
-                '0'..='9' => {
-                    let num: &mut String = &mut num;
-                    let start: &mut usize = &mut num_start_idx;
-                    if num.is_empty() {
-                        *start = char_idx;
-                    }
-                    num.push(ch);
+            if matches!(ch, '0'..='9') {
+                let num: &mut String = &mut num;
+                let start: &mut usize = &mut num_start_idx;
+                if num.is_empty() {
+                    *start = char_idx;
                 }
-                ch => {
-                    push_number(&mut num, &mut numbers, line_idx, num_start_idx);
-                    match ch {
-                        '.' => continue,
-                        _ => symbols.push((ch, Location(line_idx, char_idx, char_idx))),
-                    }
+                num.push(ch);
+            } else {
+                push_number(&mut num, &mut numbers, line_idx, num_start_idx);
+                if ch != '.' {
+                    symbols.push((ch, Location(line_idx, char_idx, char_idx)))
                 }
             }
         }
@@ -73,7 +69,12 @@ fn parse_input(input_path: &str) -> (Vec<SymbolOccurance>, Vec<NumberOccurance>)
     (symbols, numbers)
 }
 
-fn push_number(num: &mut String, numbers: &mut Vec<NumberOccurance>, line_idx: usize, num_start_idx: usize) {
+fn push_number(
+    num: &mut String,
+    numbers: &mut Vec<NumberOccurance>,
+    line_idx: usize,
+    num_start_idx: usize,
+) {
     if !num.is_empty() {
         numbers.push((
             num.parse().unwrap(),
