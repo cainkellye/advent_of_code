@@ -20,12 +20,17 @@ pub fn solve_all() {
         });
 }
 
-const SOLUTIONS: [[fn(); 2]; 4] = [
+const SOLUTIONS: [[fn(); 2]; 5] = [
     [day01_1, day01_2],
     [day02_1, day02_2],
     [day03_1, day03_2],
     [day04_1, day04_2],
+    [day05_1, day05_2],
 ];
+
+fn day05_1() {}
+
+fn day05_2() {}
 
 fn day04_1() {}
 
