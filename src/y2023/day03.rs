@@ -18,8 +18,8 @@ pub fn part2() {
                 .iter()
                 .filter(|(_, nloc)| nloc.is_near(&gloc))
                 .collect_vec();
-            if near_numbers.len() == 2 {
-                near_numbers[0].0 * near_numbers[1].0
+            if let [(num1, _), (num2, _)] = near_numbers.as_slice() {
+                num1 * num2
             } else {
                 0
             }
