@@ -51,7 +51,7 @@ fn parse_input(input_path: &str) -> (Vec<SymbolOccurance>, Vec<NumberOccurance>)
     for (line_idx, line) in iter_lines_from(input_path).enumerate() {
         push_number(&mut num, &mut numbers, line_idx.max(1) - 1, num_start_idx);
         for (char_idx, ch) in line.chars().enumerate() {
-            if matches!(ch, '0'..='9') {
+            if ch.is_ascii_digit() {
                 if num.is_empty() {
                     num_start_idx = char_idx;
                 }
@@ -59,7 +59,7 @@ fn parse_input(input_path: &str) -> (Vec<SymbolOccurance>, Vec<NumberOccurance>)
             } else {
                 push_number(&mut num, &mut numbers, line_idx, num_start_idx);
                 if ch != '.' {
-                    symbols.push((ch, Location(line_idx, char_idx, char_idx)))
+                    symbols.push((ch, Location(line_idx, char_idx, char_idx)));
                 }
             }
         }
