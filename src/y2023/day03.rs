@@ -34,26 +34,22 @@ struct Location(usize, usize, usize);
 impl Location {
     fn is_near(&self, other: &Location) -> bool {
         if self.0.abs_diff(other.0) > 1 {
-            //lines are too far
-            return false;
+            return false; //lines are too far
         }
         self.2 + 1 >= other.1 && other.2 + 1 >= self.1
     }
 }
 
-fn parse_input(input_path: &str) -> (Vec<(char, Location)>, Vec<(usize, Location)>) {
+type SymbolOccurance = (char, Location);
+type NumberOccurance = (usize, Location);
+
+fn parse_input(input_path: &str) -> (Vec<SymbolOccurance>, Vec<NumberOccurance>) {
     let mut symbols: Vec<(char, Location)> = vec![];
     let mut numbers: Vec<(usize, Location)> = vec![];
     let mut num_start_idx = 0;
     let mut num = String::new();
     for (line_idx, line) in iter_lines_from(input_path).enumerate() {
-        if !num.is_empty() {
-            numbers.push((
-                num.parse().unwrap(),
-                Location(line_idx - 1, num_start_idx, num_start_idx + num.len() - 1),
-            ));
-            num.clear();
-        }
+        push_number(&mut num, &mut numbers, line_idx.max(1) - 1, num_start_idx);
         for (char_idx, ch) in line.chars().enumerate() {
             match ch {
                 '0'..='9' => {
@@ -65,15 +61,7 @@ fn parse_input(input_path: &str) -> (Vec<(char, Location)>, Vec<(usize, Location
                     num.push(ch);
                 }
                 ch => {
-                    {
-                        if !num.is_empty() {
-                            numbers.push((
-                                num.parse().unwrap(),
-                                Location(line_idx, num_start_idx, char_idx - 1),
-                            ));
-                            num.clear();
-                        }
-                    };
+                    push_number(&mut num, &mut numbers, line_idx, num_start_idx);
                     match ch {
                         '.' => continue,
                         _ => symbols.push((ch, Location(line_idx, char_idx, char_idx))),
@@ -83,4 +71,14 @@ fn parse_input(input_path: &str) -> (Vec<(char, Location)>, Vec<(usize, Location
         }
     }
     (symbols, numbers)
+}
+
+fn push_number(num: &mut String, numbers: &mut Vec<NumberOccurance>, line_idx: usize, num_start_idx: usize) {
+    if !num.is_empty() {
+        numbers.push((
+            num.parse().unwrap(),
+            Location(line_idx, num_start_idx, num_start_idx + num.len() - 1),
+        ));
+        num.clear();
+    }
 }
