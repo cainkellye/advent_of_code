@@ -15,6 +15,11 @@ fn main() {
         return;
     }
     let day: usize = args.get(1).map_or(1, |s| s.parse::<usize>().unwrap());
+    if args.len() == 2 {
+        y2023::solve(day, 1);
+        y2023::solve(day, 2);
+        return;
+    }
     let part: usize = args.get(2).map_or(1, |s| s.parse::<usize>().unwrap());
     y2023::solve(day, part);
 }
