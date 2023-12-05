@@ -1,4 +1,3 @@
-#![allow(unused)]
 use super::*;
 use rayon::prelude::*;
 
@@ -38,14 +37,14 @@ impl Map {
         );
     }
     fn sort(&mut self) {
-        self.0.sort_unstable_by_key(|&(dest, source, range)| source);
+        self.0.sort_unstable_by_key(|&(_, source, _)| source);
     }
     fn translate(&self, value: usize) -> usize {
         let mapping = self
             .0
             .iter()
-            .find(|&&(dest, source, range)| source <= value && value < source + range);
-        if let Some((dest, source, range)) = mapping {
+            .find(|&&(_, source, range)| source <= value && value < source + range);
+        if let Some((dest, source, _)) = mapping {
             dest + value - source
         } else {
             value
@@ -64,7 +63,7 @@ fn parse_input() -> (Vec<usize>, Vec<Map>) {
         .collect_vec();
 
     for line in lines.filter(|l| !l.is_empty()) {
-        if line.chars().nth(0).unwrap().is_alphabetic() {
+        if line.chars().next().unwrap().is_alphabetic() {
             if let Some(map) = maps.last_mut() {
                 map.sort();
             }
