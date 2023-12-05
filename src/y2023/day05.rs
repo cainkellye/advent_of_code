@@ -21,8 +21,8 @@ pub fn part2() {
     println!("{min}");
 }
 
-/// dest, source, range
 #[derive(Debug)]
+/// dest, source, range
 struct Map(Vec<(usize, usize, usize)>);
 impl Map {
     fn new() -> Self {
@@ -35,9 +35,6 @@ impl Map {
                 .collect_tuple()
                 .unwrap(),
         );
-    }
-    fn sort(&mut self) {
-        self.0.sort_unstable_by_key(|&(_, source, _)| source);
     }
     fn translate(&self, value: usize) -> usize {
         let mapping = self
@@ -64,14 +61,11 @@ fn parse_input() -> (Vec<usize>, Vec<Map>) {
 
     for line in lines.filter(|l| !l.is_empty()) {
         if line.chars().next().unwrap().is_alphabetic() {
-            if let Some(map) = maps.last_mut() {
-                map.sort();
-            }
             maps.push(Map::new());
             continue;
         }
         maps.last_mut().unwrap().add(&line);
     }
-
+    
     (seeds, maps)
 }
