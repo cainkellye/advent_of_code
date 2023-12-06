@@ -7,6 +7,7 @@ use std::{
 
 mod y2022;
 mod y2023;
+mod utils;
 
 fn main() {
     let args = args().collect_vec();
