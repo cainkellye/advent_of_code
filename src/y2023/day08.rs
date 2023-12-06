@@ -1,9 +1,9 @@
 use super::*;
 pub fn part1() {
-    part1_internal("res/2023/input07.txt")
+    part1_internal("res/2023/input08.txt")
 }
 pub fn part2() {
-    part2_internal("res/2023/input07.txt")
+    part2_internal("res/2023/input08.txt")
 }
 
 fn part1_internal(input_file: &str) {}
@@ -18,11 +18,11 @@ mod test {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1_internal("res/2023/test07.txt"), ());
+        assert_eq!(part1_internal("res/2023/test08.txt"), ());
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2_internal("res/2023/test07.txt"), ());
+        assert_eq!(part2_internal("res/2023/test08.txt"), ());
     }
 }
