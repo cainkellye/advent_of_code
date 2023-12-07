@@ -1,11 +1,12 @@
 #![allow(unused_imports)]
 use super::iter_lines_from;
 use itertools::Itertools;
+use crate::utils::time;
 
 /// https://adventofcode.com/2023
 pub fn solve(day: usize, part: usize) {
     println!("Solution for day {day} part {part} (2023)");
-    SOLUTIONS[day - 1][part - 1]();
+    time(&SOLUTIONS[day - 1][part - 1]);
 }
 
 pub fn solve_all() {
@@ -15,9 +16,9 @@ pub fn solve_all() {
         .for_each(|(day, [part1, part2])| {
             let day = day + 1;
             println!("Solution for day {day} part 1 (2023)");
-            part1();
+            time(part1);
             println!("Solution for day {day} part 2 (2023)");
-            part2();
+            time(part2);
         });
 }
 

@@ -1,5 +1,5 @@
 #![allow(unused)]
-use std::ops::Range;
+use std::{ops::Range, time::SystemTime};
 
 pub fn merge_ranges_in_place(mut ranges: Vec<Range<usize>>) -> Vec<Range<usize>> {
     //sort the ranges by start
@@ -17,4 +17,11 @@ pub fn merge_ranges_in_place(mut ranges: Vec<Range<usize>>) -> Vec<Range<usize>>
         }
     }
     ranges
+}
+
+pub fn time(func: &fn()) {
+    let start = SystemTime::now();
+    func();
+    let time = start.elapsed().unwrap_or_default();
+    println!("### Time: {time:?}");
 }
