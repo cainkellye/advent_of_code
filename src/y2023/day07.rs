@@ -20,7 +20,7 @@ fn solve(p: Part) -> usize {
             line.split_once(' ')
                 .map(|(a, b)| (a.to_owned(), b.to_owned()))
         })
-        .sorted_by(|(a, _), (b, _)| compare_hands(a, b, p))
+        .sorted_unstable_by(|(a, _), (b, _)| compare_hands(a, b, p))
         .enumerate()
         .map(|(idx, (_, bid))| (idx + 1) * bid.parse::<usize>().unwrap())
         .sum()
@@ -43,11 +43,11 @@ fn score_hand(hand: &str, p: Part) -> [u8; 2] {
     let mut faces = [0_u8; 13];
     let mut jokers = 0;
     for c in hand.chars() {
-        if p == Part::Two && c == 'J' {
-            jokers += 1;
-        } else {
-            faces[face_value(c, p)] += 1;
-        }
+        faces[face_value(c, p)] += 1;
+    }
+    if p == Part::Two {
+        jokers = faces[0];
+        faces[0] = 0;
     }
     faces.sort_unstable();
     let mut score: [u8; 2] = faces[11..].try_into().unwrap();
