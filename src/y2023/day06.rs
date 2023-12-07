@@ -10,7 +10,7 @@ use roots::{find_roots_quadratic, Roots::Two};
 /// pp - tp + d < 0
 pub fn part1() {
     let (times, distances) = iter_lines_from("res/2023/input06.txt")
-        .filter_map(|line| line.split_once(":").map(|(_, x)| x.to_owned()))
+        .filter_map(|line| line.split_once(':').map(|(_, x)| x.to_owned()))
         .map(|numbers| {
             numbers
                 .split_whitespace()
@@ -20,10 +20,10 @@ pub fn part1() {
         .collect_tuple()
         .unwrap();
 
-    let solution: usize = times.into_iter().zip(distances.into_iter())
+    let solution: usize = times.into_iter().zip(distances)
         .map(|(time, distance)| {
             if let Two([low, high]) =
-                find_roots_quadratic(1_f64, -(time as f64), distance as f64)
+                find_roots_quadratic(1_f64, -time, distance)
             {
                 (high.ceil() - low.ceil()) as usize
             } else {
@@ -35,13 +35,13 @@ pub fn part1() {
 
 pub fn part2() {
     let (time, distance) = iter_lines_from("res/2023/input06.txt")
-        .filter_map(|line| line.split_once(":").map(|(_, x)| x.to_owned()))
-        .filter_map(|number| number.replace(" ", "").parse::<usize>().ok())
+        .filter_map(|line| line.split_once(':').map(|(_, x)| x.to_owned()))
+        .filter_map(|number| number.replace(' ', "").parse::<f64>().ok())
         .collect_tuple()
         .unwrap();
 
     let solution: usize = if let Two([low, high]) =
-        find_roots_quadratic(1_f64, -(time as f64), distance as f64)
+        find_roots_quadratic(1_f64, -time, distance)
     {
         (high.ceil() - low.ceil()) as usize
     } else {

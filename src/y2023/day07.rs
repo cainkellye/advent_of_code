@@ -4,7 +4,6 @@ use std::cmp::Ordering;
 pub fn part1() {
     println!("{}", solve(Part::One)); //250602641
 }
-
 pub fn part2() {
     println!("{}", solve(Part::Two)); //251037509
 }
@@ -18,7 +17,7 @@ enum Part {
 fn solve(p: Part) -> usize {
     iter_lines_from("res/2023/input07.txt")
         .filter_map(|line| {
-            line.split_once(" ")
+            line.split_once(' ')
                 .map(|(a, b)| (a.to_owned(), b.to_owned()))
         })
         .sorted_by(|(a, _), (b, _)| compare_hands(a, b, p))
@@ -27,7 +26,7 @@ fn solve(p: Part) -> usize {
         .sum()
 }
 
-fn compare_hands(a: &String, b: &String, p: Part) -> Ordering {
+fn compare_hands(a: &str, b: &str, p: Part) -> Ordering {
     let cmp = score_hand(a, p).cmp(&score_hand(b, p));
     if cmp != Ordering::Equal {
         return cmp;
@@ -40,7 +39,7 @@ fn compare_hands(a: &String, b: &String, p: Part) -> Ordering {
     face_value(a, p).cmp(&face_value(b, p))
 }
 
-fn score_hand(hand: &String, p: Part) -> [u8; 2] {
+fn score_hand(hand: &str, p: Part) -> [u8; 2] {
     let mut faces = [0_u8; 13];
     let mut jokers = 0;
     for c in hand.chars() {
