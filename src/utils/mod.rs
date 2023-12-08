@@ -19,9 +19,15 @@ pub fn merge_ranges_in_place(mut ranges: Vec<Range<usize>>) -> Vec<Range<usize>>
     ranges
 }
 
+#[cfg(not(debug_assertions))]
 pub fn time(func: &fn()) {
     let start = SystemTime::now();
     func();
     let time = start.elapsed().unwrap_or_default();
     println!("### Time: {time:?}");
+}
+
+#[cfg(debug_assertions)]
+pub fn time(func: &fn()) {
+    func();
 }
