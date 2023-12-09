@@ -1,5 +1,3 @@
-use std::process::id;
-
 use super::*;
 pub fn part1() {
     println!("{:?}", part1_internal("res/2023/input09.txt")); //1938731307
@@ -9,17 +7,13 @@ pub fn part2() {
 }
 
 fn part1_internal(input_file: &str) -> i32 {
-    let input = parse_input(input_file);
-    input
-        .into_iter()
+    parse_input(input_file)
         .map(|mut list| extrapolate(list.as_mut_slice()))
         .sum()
 }
 
 fn part2_internal(input_file: &str) -> i32 {
-    let input = parse_input(input_file);
-    input
-        .into_iter()
+    parse_input(input_file)
         .map(|mut list| {
             list.reverse();
             extrapolate(list.as_mut_slice())
