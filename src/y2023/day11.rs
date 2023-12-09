@@ -1,9 +1,9 @@
 use super::*;
 pub fn part1() {
-    println!("{:?}", part1_internal("res/2023/input10.txt"));
+    println!("{:?}", part1_internal("res/2023/input11.txt"));
 }
 pub fn part2() {
-    println!("{:?}", part2_internal("res/2023/input10.txt"));
+    println!("{:?}", part2_internal("res/2023/input11.txt"));
 }
 
 fn part1_internal(input_file: &str) -> usize {
@@ -24,11 +24,11 @@ mod test {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1_internal("res/2023/test10.txt"), ());
+        assert_eq!(part1_internal("res/2023/test11.txt"), ());
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2_internal("res/2023/test10.txt"), ());
+        assert_eq!(part2_internal("res/2023/test11.txt"), ());
     }
 }
