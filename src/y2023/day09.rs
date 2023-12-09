@@ -8,28 +8,20 @@ pub fn part2() {
 
 fn part1_internal(input_file: &str) -> i32 {
     let input = parse_input(input_file);
-    input.into_iter().map(|list| extrapolate(list)).sum()
+    input.into_iter().map(|list| extrapolate(list, true)).sum()
 }
 
 fn part2_internal(input_file: &str) -> i32 {
     let input = parse_input(input_file);
-    input.into_iter().map(|list| extrapolate_back(list)).sum()
+    input.into_iter().map(|list| extrapolate(list, false)).sum()
 }
 
-fn extrapolate(list: Vec<i32>) -> i32 {
+fn extrapolate(list: Vec<i32>, forward: bool) -> i32 {
     let distances = list.windows(2).map(|w| w[1] - w[0]).collect_vec();
     if distances.iter().all(|&d| d == 0) {
-        return *list.last().unwrap();
+        return list[if forward { list.len() - 1 } else { 0 }];
     }
-    *list.last().unwrap() + extrapolate(distances)
-}
-
-fn extrapolate_back(list: Vec<i32>) -> i32 {
-    let distances = list.windows(2).map(|w| w[1] - w[0]).collect_vec();
-    if distances.iter().all(|&d| d == 0) {
-        return *list.first().unwrap();
-    }
-    *list.first().unwrap() - extrapolate_back(distances)
+    list[if forward { list.len() - 1 } else { 0 }] + extrapolate(distances, forward)
 }
 
 fn parse_input(input_file: &str) -> impl Iterator<Item = Vec<i32>> {
