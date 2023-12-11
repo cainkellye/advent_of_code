@@ -16,14 +16,14 @@ fn part1_internal(input_file: &str) -> usize {
     traverse(parse_input(input_file)).0
 }
 
+#[allow(clippy::needless_range_loop)] // need to be explicit to be able to modify the grid in the loop
 fn part2_internal(input_file: &str) -> usize {
     let (grid, start) = parse_input(input_file);
     let (_, main_loop, start_connections) = traverse((grid.clone(), start));
     let mut grid_b = parse_grid(input_file);
     let (rows, cols) = (grid_b.len(), grid_b[0].len());
 
-    grid_b[start.0 as usize][start.1 as usize] =
-        get_start_pipe_symbol(start, start_connections);
+    grid_b[start.0 as usize][start.1 as usize] = get_start_symbol(start, start_connections);
 
     let mut count = 0;
     for row in 0..rows {
@@ -32,8 +32,7 @@ fn part2_internal(input_file: &str) -> usize {
         for col in 0..cols {
             match grid_b[row][col] {
                 s if main_loop.contains(&(row as i32, col as i32)) => {
-                    if last == b'.'
-                        || s == b'|'
+                    if s == b'|'
                         || s == b'F'
                         || s == b'L'
                         || (s == b'J' && last == b'L')
@@ -66,7 +65,7 @@ fn part2_internal(input_file: &str) -> usize {
     count
 }
 
-fn get_start_pipe_symbol(start_coord: Coord, start_pipe: Pipe) -> u8 {
+fn get_start_symbol(start_coord: Coord, start_pipe: Pipe) -> u8 {
     let left = (start_coord.0, start_coord.1 - 1);
     let right = (start_coord.0, start_coord.1 + 1);
     let up = (start_coord.0 - 1, start_coord.1);
@@ -89,7 +88,7 @@ fn get_start_pipe_symbol(start_coord: Coord, start_pipe: Pipe) -> u8 {
 fn traverse((mut grid, start): (Grid, Coord)) -> (usize, Vec<Coord>, Pipe) {
     let start_neighbours = get_start_neighbours(start, &grid);
 
-    // The input data only has 2 connections to start
+    // The input data has only 2 connections to start
     if cfg!(debug_assertions) {
         println!("{:?}", start_neighbours);
         assert_eq!(start_neighbours.len(), 2);
@@ -113,20 +112,22 @@ fn traverse((mut grid, start): (Grid, Coord)) -> (usize, Vec<Coord>, Pipe) {
         touched.push(current_a);
         touched.push(current_b);
     }
-    (0, touched, grid[start.0 as usize][start.1 as usize])
+    unreachable!()
 }
 
 fn get_start_neighbours((start_row, start_col): Coord, grid: &Grid) -> Vec<Coord> {
-    let start_neighbours = [
+    [
         (start_row - 1, start_col),
         (start_row + 1, start_col),
         (start_row, start_col - 1),
         (start_row, start_col + 1),
     ]
     .into_iter()
+    .filter(|&(row, col)| {
+        row >= 0 && row < grid.len() as i32 && col >= 0 && col < grid[0].len() as i32
+    })
     .filter(|&(row, col)| grid[row as usize][col as usize].contains(&(start_row, start_col)))
-    .collect_vec();
-    start_neighbours
+    .collect_vec()
 }
 
 fn get_next_coord(current: Coord, prev: Coord, grid: &Grid) -> Coord {
