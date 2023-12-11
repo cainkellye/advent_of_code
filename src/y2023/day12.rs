@@ -8,14 +8,16 @@ pub fn part2() {
 
 fn part1_internal(input_file: &str) -> usize {
     parse_input(input_file);
+    0
 }
 
 fn part2_internal(input_file: &str) -> usize {
     parse_input(input_file);
+    0
 }
 
 fn parse_input(input_file: &str) -> () {
-    iter_lines_from(input_file);
+    iter_lines_from(input_file).map(|line| line);
 }
 
 #[cfg(test)]
@@ -24,11 +26,11 @@ mod test {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1_internal("res/2023/test12.txt"), ());
+        assert_eq!(part1_internal("res/2023/test12.txt"), 0);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2_internal("res/2023/test12.txt"), ());
+        assert_eq!(part2_internal("res/2023/test12.txt"), 0);
     }
 }
