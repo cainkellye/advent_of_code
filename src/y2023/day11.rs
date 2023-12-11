@@ -7,20 +7,8 @@ pub fn part2() {
 }
 
 fn internal(input_file: &str, expansion: usize) -> usize {
-    let space = parse_input(input_file);
-    let (rows, cols) = (space.len(), space[0].len());
-    let (expanded_rows, expanded_cols) = get_expanded_rows_cols(&space, rows, cols);
-    let galaxies = space
-        .iter()
-        .enumerate()
-        .flat_map(|(r, row)| {
-            row.iter()
-                .enumerate()
-                .filter(|(_, &col)| col == 1)
-                .map(|(c, _)| (r, c))
-                .collect_vec()
-        })
-        .collect_vec();
+    let (space, galaxies) = parse_input(input_file);
+    let (empty_rows, empty_cols) = get_empty_rows_cols(&space);
     galaxies
         .iter()
         .enumerate()
@@ -30,10 +18,14 @@ fn internal(input_file: &str, expansion: usize) -> usize {
                 .skip(id + 1)
                 .map(|&(r2, c2)| {
                     let mut distance = r.abs_diff(r2) + c.abs_diff(c2);
-                    distance += (r + 1..r2).filter(|r| expanded_rows.contains(r)).count() * (expansion - 1);
-                    distance += (*c.min(&c2) + 1..*c.max(&c2))
-                        .filter(|c| expanded_cols.contains(c))
-                        .count() * (expansion - 1);
+                    distance += (r + 1..r2) // here we know that r2 will always be the bigger
+                        .filter(|r| empty_rows.contains(r))
+                        .count()
+                        * (expansion - 1);
+                    distance += (*c.min(&c2) + 1..*c.max(&c2)) // here we don't know
+                        .filter(|c| empty_cols.contains(c))
+                        .count()
+                        * (expansion - 1);
                     distance
                 })
                 .sum::<usize>()
@@ -41,34 +33,38 @@ fn internal(input_file: &str, expansion: usize) -> usize {
         .sum::<usize>()
 }
 
-fn get_expanded_rows_cols(
-    space: &Vec<Vec<u8>>,
-    rows: usize,
-    cols: usize,
-) -> (Vec<usize>, Vec<usize>) {
-    let mut expanded_rows = vec![];
-    let mut expanded_cols = vec![];
-    for row in 0..rows {
-        if space[row].iter().all(|&c| c == 0) {
-            expanded_rows.push(row);
-        }
-    }
-    for col in 0..cols {
-        if (0..rows).all(|r| space[r][col] == 0) {
-            expanded_cols.push(col);
-        }
-    }
-    (expanded_rows, expanded_cols)
+fn get_empty_rows_cols(space: &Vec<Vec<u8>>) -> (Vec<usize>, Vec<usize>) {
+    let mut empty_rows = vec![];
+    let mut empty_cols = vec![];
+    let (rows, cols) = (space.len(), space[0].len());
+    (0..rows)
+        .filter(|&row| space[row].iter().all(|&c| c == 0))
+        .for_each(|row| empty_rows.push(row));
+    (0..cols)
+        .filter(|&col| (0..rows).all(|r| space[r][col] == 0))
+        .for_each(|col| empty_cols.push(col));
+    (empty_rows, empty_cols)
 }
 
-fn parse_input(input_file: &str) -> Vec<Vec<u8>> {
-    iter_lines_from(input_file)
-        .map(|line| {
+fn parse_input(input_file: &str) -> (Vec<Vec<u8>>, Vec<(usize, usize)>) {
+    let mut galaxies = vec![];
+    let space = iter_lines_from(input_file)
+        .enumerate()
+        .map(|(row, line)| {
             line.bytes()
-                .map(|b| if b == b'#' { 1 } else { 0 })
+                .enumerate()
+                .map(|(col, b)| {
+                    if b == b'#' {
+                        galaxies.push((row, col));
+                        1
+                    } else {
+                        0
+                    }
+                })
                 .collect_vec()
         })
-        .collect_vec()
+        .collect_vec();
+    (space, galaxies)
 }
 
 #[cfg(test)]
