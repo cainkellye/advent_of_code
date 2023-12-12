@@ -2,7 +2,7 @@ use itertools::Itertools;
 use std::{
     env::args,
     fs::File,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, Read},
 };
 
 mod y2022;
@@ -29,4 +29,12 @@ fn iter_lines_from(path: &str) -> impl Iterator<Item = String> {
     let file = File::open(path).expect("Can't open file.");
     let lines = BufReader::new(file);
     lines.lines().map_while(Result::ok)
+}
+
+#[allow(unused)]
+fn read_to_string(path: &str) -> String {
+    let mut file = File::open(path).expect("Can't open file.");
+    let mut input = String::new();
+    file.read_to_string(&mut input).expect("Can't read file.");
+    input
 }
