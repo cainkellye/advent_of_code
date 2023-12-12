@@ -11,8 +11,10 @@ pub fn part2() {
 }
 
 fn part1_internal(input_file: &str) -> usize {
-    let lines = iter_lines_from(input_file).collect_vec();
-    lines.par_iter().map(|line| count_arrangements(line)).sum()
+    iter_lines_from(input_file)
+        .par_bridge()
+        .map(|line| count_arrangements(&line))
+        .sum()
 }
 
 fn part2_internal(input_file: &str) -> usize {
@@ -39,16 +41,7 @@ fn count_arrangements(input: &str) -> usize {
 fn count_recursive(springs: String, groups: Vec<usize>) -> usize {
     let springs = springs.trim_start_matches('.');
     let mut count = 0;
-    let pattern = format!(
-        r"^[#\?]{{{}}}{}",
-        groups[0],
-        if groups.len() > 1 {
-            r"[\.\?]"
-        } else {
-            r"[\.\?]*$"
-        }
-    );
-    let re = Regex::new(&pattern).unwrap();
+    let re = get_regex(groups[0], groups.len() == 1);
     if re.is_match(springs) {
         if groups.len() > 1 {
             if springs.len() > groups[0] + 1 {
@@ -64,6 +57,15 @@ fn count_recursive(springs: String, groups: Vec<usize>) -> usize {
         count += count_recursive(springs[1..].to_owned(), groups);
     }
     count
+}
+
+#[memoize]
+fn get_regex(group: usize, is_last: bool) -> Regex {
+    let mut pattern = format!("{}{}{}", r"^[#\?]{", group, r"}[\.\?]");
+    if is_last {
+        pattern.push_str("*$");
+    }
+    Regex::new(&pattern).unwrap()
 }
 
 #[cfg(test)]
