@@ -1,8 +1,10 @@
+use std::fmt::{Debug, Write};
+
 use rayon::iter::IndexedParallelIterator;
 
 use super::*;
 pub fn part1() {
-    println!("{:?}", part1_internal("res/2023/input13.txt"));
+    println!("{:?}", part1_internal("res/2023/input13.txt")); // 33975
 }
 pub fn part2() {
     println!("{:?}", part2_internal("res/2023/input13.txt"));
@@ -20,11 +22,23 @@ fn part2_internal(input_file: &str) -> usize {
     0
 }
 
-#[derive(Debug)]
 struct Grid {
     grid: Vec<Vec<u8>>,
     rows: usize,
     cols: usize,
+}
+
+impl Debug for Grid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_char('\n').unwrap();
+        f.write_str(
+            &self
+                .grid
+                .iter()
+                .map(|line| String::from_utf8_lossy(line))
+                .join("\n"),
+        )
+    }
 }
 
 impl Grid {
@@ -44,52 +58,72 @@ impl Grid {
 }
 
 fn find_mirror(grid: &Grid) -> usize {
-    let max_gap = grid.rows.min(grid.cols) - 2;
-    for gap in (0..max_gap).step_by(2) {
-        let row = find_mirror_row(grid, gap);
-        let col = find_mirror_col(grid, gap);
-        match (row, col) {
-            (Some(_), Some(_)) => continue,
-            (None, Some(col)) => return col,
-            (Some(row), None) => return row * 100,
-            (None, None) => unreachable!("No mirror found {:?}", grid),
+    let row = find_mirror_row(grid);
+    let col = find_mirror_col(grid);
+    match (row, col) {
+        (Some(row), Some(col)) => {
+            unreachable!("Both row and col found: {:?} {:?}\n{:?}", row, col, grid)
+        }
+        (None, Some(col)) => col,
+        (Some(row), None) => row * 100,
+        (None, None) => {
+            unreachable!("No mirror found {:?}", grid);
         }
     }
-    unreachable!("No mirror found {:?}", grid);
 }
 
-fn find_mirror_row(grid: &Grid, gap: usize) -> Option<usize> {
-    let mirror_pairs = (0..grid.rows - gap - 1)
-        .zip(gap + 1..grid.rows)
+fn find_mirror_row(grid: &Grid) -> Option<usize> {
+    let mirrors = (0..grid.rows - 1)
+        .zip(1..grid.rows)
         .filter(|&(a, b)| grid.row(a) == grid.row(b))
+        .map(|(_, b)| b)
+        .filter(|&m| verify_mirror_row(m, grid))
         .collect_vec();
-    if mirror_pairs.is_empty() {
+    if mirrors.is_empty() {
         return None;
-    } else if mirror_pairs.len() == 1 {
-        return Some(mirror_pairs[0].1 - gap / 2);
+    } else if mirrors.len() == 1 {
+        return Some(mirrors[0]);
     } else {
-        let Some(row) = find_mirror_row(grid, gap + 2) else { return None; };
-        if mirror_pairs.iter().any(|(_,b)| (b - gap / 2) == row) {
-            Some(row)
-        } else { None }
+        unreachable!("More than 1 verified row");
     }
 }
 
-fn find_mirror_col(grid: &Grid, gap: usize) -> Option<usize> {
-    let mirror_pairs = (0..grid.cols - gap - 1)
-        .zip(gap + 1..grid.cols)
-        .filter(|&(a, b)| grid.col(a) == grid.col(b))
-        .collect_vec();
-    if mirror_pairs.is_empty() {
-        return None;
-    } else if mirror_pairs.len() == 1 {
-        return Some(mirror_pairs[0].1 - gap / 2);
-    } else {
-        let Some(col) = find_mirror_col(grid, gap + 2) else { return None; };
-        if mirror_pairs.iter().any(|(_,b)| (b - gap / 2) == col) {
-            Some(col)
-        } else { None }
+fn verify_mirror_row(at: usize, grid: &Grid) -> bool {
+    let mut gap = 2;
+    while at >= gap && at <= grid.rows - gap {
+        if grid.row(at - gap) != grid.row(at + gap - 1) {
+            return false;
+        }
+        gap += 1;
     }
+    true
+}
+
+fn find_mirror_col(grid: &Grid) -> Option<usize> {
+    let mirrors = (0..grid.cols - 1)
+        .zip(1..grid.cols)
+        .filter(|&(a, b)| grid.col(a) == grid.col(b))
+        .map(|(_, b)| b)
+        .filter(|&m| verify_mirror_col(m, grid))
+        .collect_vec();
+    if mirrors.is_empty() {
+        return None;
+    } else if mirrors.len() == 1 {
+        return Some(mirrors[0]);
+    } else {
+        unreachable!("More than 1 verified col");
+    }
+}
+
+fn verify_mirror_col(at: usize, grid: &Grid) -> bool {
+    let mut gap = 2;
+    while at >= gap && at <= grid.cols - gap {
+        if grid.col(at - gap) != grid.col(at + gap - 1) {
+            return false;
+        }
+        gap += 1;
+    }
+    true
 }
 
 fn parse_input(input_file: &str) -> Vec<Grid> {
@@ -114,7 +148,6 @@ mod test {
 
     #[test]
     fn test_part1() {
-        //assert_eq!(part1_internal("res/2023/test13.txt"), 5 + 7 + 400 + 100);
         let grid1 = Grid::new(vec![
             b"#.##..##.".to_vec(),
             b"..#.##.#.".to_vec(),
@@ -135,8 +168,48 @@ mod test {
             b"#....#..#".to_vec(),
         ]);
 
+        let grid3 = Grid::new(vec![
+            b".......##..##".to_vec(),
+            b"..##...#.#...".to_vec(),
+            b".#..#...#.###".to_vec(),
+            b".####...#..##".to_vec(),
+            b"##..##.####.#".to_vec(),
+            b"#.##.#.#.....".to_vec(),
+            b".......#.##..".to_vec(),
+            b"..##..#.#.###".to_vec(),
+            b"......#..#..#".to_vec(),
+            b".......#.##.#".to_vec(),
+            b"......#..#.##".to_vec(),
+            b"#...##..#..##".to_vec(),
+            b".####.#.#..##".to_vec(),
+            b".####.#.##...".to_vec(),
+            b".####.#.##...".to_vec(),
+        ]);
+
+        let grid4 = Grid::new(vec![
+            b"...##.#.#..##".to_vec(),
+            b".#.#..#.#..##".to_vec(),
+            b".##.##...#..#".to_vec(),
+            b".##.##...#..#".to_vec(),
+            b".#.#..#.#..##".to_vec(),
+            b"...##.#.#..##".to_vec(),
+            b".#.#.##....#.".to_vec(),
+            b"########....#".to_vec(),
+            b"##..#.#...#.#".to_vec(),
+            b"......##.....".to_vec(),
+            b"#..#.....###.".to_vec(),
+            b"#.#.#####.##.".to_vec(),
+            b"#.#.#####.##.".to_vec(),
+            b"#..#.....###.".to_vec(),
+            b"......##.....".to_vec(),
+            b"##..#.#.#.#.#".to_vec(),
+            b"########....#".to_vec(),
+        ]);
+
         assert_eq!(find_mirror(&grid1), 5);
         assert_eq!(find_mirror(&grid2), 400);
+        assert_eq!(find_mirror(&grid3), 1400);
+        assert_eq!(find_mirror(&grid4), 300);
     }
 
     #[test]
