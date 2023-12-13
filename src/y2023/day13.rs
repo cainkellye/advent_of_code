@@ -9,7 +9,10 @@ pub fn part2() {
 }
 
 fn part1_internal(input_file: &str) -> usize {
-    parse_input(input_file).into_iter().map(|grid| find_mirror(&grid)).sum()
+    parse_input(input_file)
+        .into_iter()
+        .map(|grid| find_mirror(&grid))
+        .sum()
 }
 
 fn part2_internal(input_file: &str) -> usize {
@@ -41,40 +44,51 @@ impl Grid {
 }
 
 fn find_mirror(grid: &Grid) -> usize {
-    if let Some(row) = find_mirror_row(grid) {
-        return row;
-    }
-    if let Some(col) = find_mirror_col(grid) {
-        return col * 100;
+    let max_gap = grid.rows.min(grid.cols) - 2;
+    for gap in (0..max_gap).step_by(2) {
+        let row = find_mirror_row(grid, gap);
+        let col = find_mirror_col(grid, gap);
+        match (row, col) {
+            (Some(_), Some(_)) => continue,
+            (None, Some(col)) => return col,
+            (Some(row), None) => return row * 100,
+            (None, None) => unreachable!("No mirror found {:?}", grid),
+        }
     }
     unreachable!("No mirror found {:?}", grid);
 }
 
-fn find_mirror_row(grid: &Grid) -> Option<usize> {
-    let mirror_pairs = (0..grid.rows)
-        .tuple_windows()
+fn find_mirror_row(grid: &Grid, gap: usize) -> Option<usize> {
+    let mirror_pairs = (0..grid.rows - gap - 1)
+        .zip(gap + 1..grid.rows)
         .filter(|&(a, b)| grid.row(a) == grid.row(b))
         .collect_vec();
     if mirror_pairs.is_empty() {
         return None;
     } else if mirror_pairs.len() == 1 {
-        return Some(mirror_pairs[0].1);
+        return Some(mirror_pairs[0].1 - gap / 2);
     } else {
-        todo!("broaden search");
+        let Some(row) = find_mirror_row(grid, gap + 2) else { return None; };
+        if mirror_pairs.iter().any(|(_,b)| (b - gap / 2) == row) {
+            Some(row)
+        } else { None }
     }
 }
 
-fn find_mirror_col(grid: &Grid) -> Option<usize> {
-    let mirror_pairs = (0..grid.cols)
-        .tuple_windows()
+fn find_mirror_col(grid: &Grid, gap: usize) -> Option<usize> {
+    let mirror_pairs = (0..grid.cols - gap - 1)
+        .zip(gap + 1..grid.cols)
         .filter(|&(a, b)| grid.col(a) == grid.col(b))
         .collect_vec();
     if mirror_pairs.is_empty() {
         return None;
     } else if mirror_pairs.len() == 1 {
-        return Some(mirror_pairs[0].1);
+        return Some(mirror_pairs[0].1 - gap / 2);
     } else {
-        todo!("broaden search");
+        let Some(col) = find_mirror_col(grid, gap + 2) else { return None; };
+        if mirror_pairs.iter().any(|(_,b)| (b - gap / 2) == col) {
+            Some(col)
+        } else { None }
     }
 }
 
@@ -100,7 +114,29 @@ mod test {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1_internal("res/2023/test13.txt"), 0);
+        //assert_eq!(part1_internal("res/2023/test13.txt"), 5 + 7 + 400 + 100);
+        let grid1 = Grid::new(vec![
+            b"#.##..##.".to_vec(),
+            b"..#.##.#.".to_vec(),
+            b"##......#".to_vec(),
+            b"##......#".to_vec(),
+            b"..#.##.#.".to_vec(),
+            b"..##..##.".to_vec(),
+            b"#.#.##.#.".to_vec(),
+        ]);
+
+        let grid2 = Grid::new(vec![
+            b"#...##..#".to_vec(),
+            b"#....#..#".to_vec(),
+            b"..##..###".to_vec(),
+            b"#####.##.".to_vec(),
+            b"#####.##.".to_vec(),
+            b"..##..###".to_vec(),
+            b"#....#..#".to_vec(),
+        ]);
+
+        assert_eq!(find_mirror(&grid1), 5);
+        assert_eq!(find_mirror(&grid2), 400);
     }
 
     #[test]
