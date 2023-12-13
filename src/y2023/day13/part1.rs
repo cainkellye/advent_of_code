@@ -1,5 +1,6 @@
-use itertools::Itertools;
 use super::Grid;
+use itertools::Itertools;
+
 pub fn find_mirror(grid: &Grid) -> usize {
     let row = find_mirror_row(grid);
     let col = find_mirror_col(grid);
@@ -23,9 +24,9 @@ fn find_mirror_row(grid: &Grid) -> Option<usize> {
         .filter(|&m| verify_mirror_row(m, grid))
         .collect_vec();
     if mirrors.is_empty() {
-        return None;
+        None
     } else if mirrors.len() == 1 {
-        return Some(mirrors[0]);
+        Some(mirrors[0])
     } else {
         unreachable!("More than 1 verified row");
     }
@@ -50,9 +51,9 @@ fn find_mirror_col(grid: &Grid) -> Option<usize> {
         .filter(|&m| verify_mirror_col(m, grid))
         .collect_vec();
     if mirrors.is_empty() {
-        return None;
+        None
     } else if mirrors.len() == 1 {
-        return Some(mirrors[0]);
+        Some(mirrors[0])
     } else {
         unreachable!("More than 1 verified col");
     }

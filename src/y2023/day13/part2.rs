@@ -1,5 +1,6 @@
 use super::Grid;
 use itertools::Itertools;
+
 pub fn find_mirror(grid: &Grid) -> usize {
     let row = find_mirror_row(grid);
     let col = find_mirror_col(grid);
@@ -20,11 +21,8 @@ fn find_mirror_row(grid: &Grid) -> Option<usize> {
         .zip(1..grid.rows)
         .map(|(a, b)| {
             let mut smudge = false;
-            (
-                b,
-                matches(&grid.row(a), &grid.row(b), &mut smudge),
-                smudge,
-            )
+            let matched = matches(grid.row(a), grid.row(b), &mut smudge);
+            (b, matched, smudge)
         })
         .filter(|&(_, matched, _)| matched)
         .map(|(m, _, smudge)| {
@@ -35,9 +33,9 @@ fn find_mirror_row(grid: &Grid) -> Option<usize> {
         .map(|(m, _, _)| m)
         .collect_vec();
     if mirrors.is_empty() {
-        return None;
+        None
     } else if mirrors.len() == 1 {
-        return Some(mirrors[0]);
+        Some(mirrors[0])
     } else {
         unreachable!("More than 1 verified row");
     }
@@ -60,11 +58,8 @@ fn find_mirror_col(grid: &Grid) -> Option<usize> {
         .zip(1..grid.cols)
         .map(|(a, b)| {
             let mut smudge = false;
-            (
-                b,
-                matches(&grid.col(a), &grid.col(b), &mut smudge),
-                smudge,
-            )
+            let matched = matches(&grid.col(a), &grid.col(b), &mut smudge);
+            (b, matched, smudge)
         })
         .filter(|&(_, matched, _)| matched)
         .map(|(m, _, smudge)| {
@@ -75,9 +70,9 @@ fn find_mirror_col(grid: &Grid) -> Option<usize> {
         .map(|(m, _, _)| m)
         .collect_vec();
     if mirrors.is_empty() {
-        return None;
+        None
     } else if mirrors.len() == 1 {
-        return Some(mirrors[0]);
+        Some(mirrors[0])
     } else {
         unreachable!("More than 1 verified col");
     }
