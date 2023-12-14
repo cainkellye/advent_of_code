@@ -1,5 +1,11 @@
 #![allow(unused)]
-use std::{ops::Range, time::SystemTime};
+use itertools::Itertools;
+use std::{
+    fmt::{Debug, Formatter, Result, Write},
+    ops::Range,
+    time::SystemTime,
+};
+
 pub mod primes;
 
 pub fn merge_ranges_in_place(mut ranges: Vec<Range<usize>>) -> Vec<Range<usize>> {
@@ -31,4 +37,49 @@ pub fn time(func: &fn()) {
 #[cfg(debug_assertions)]
 pub fn time(func: &fn()) {
     func();
+}
+
+#[derive(Eq, PartialOrd, Ord, Clone)]
+pub struct Grid {
+    pub buffer: Vec<Vec<u8>>,
+    pub rows: usize,
+    pub cols: usize,
+}
+
+impl PartialEq for Grid {
+    fn eq(&self, other: &Self) -> bool {
+        self.rows == other.rows && self.cols == other.cols && self.buffer == other.buffer
+    }
+}
+
+impl Debug for Grid {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        f.write_char('\n').unwrap();
+        f.write_str(
+            &self
+                .buffer
+                .iter()
+                .map(|line| String::from_utf8_lossy(line))
+                .join("\n"),
+        )
+    }
+}
+
+impl Grid {
+    pub fn new(grid: Vec<Vec<u8>>) -> Self {
+        Self {
+            rows: grid.len(),
+            cols: grid[0].len(),
+            buffer: grid,
+        }
+    }
+    pub fn row(&self, index: usize) -> &Vec<u8> {
+        &self.buffer[index]
+    }
+    pub fn col(&self, index: usize) -> Vec<u8> {
+        self.buffer.iter().map(|row| row[index]).collect_vec()
+    }
+    pub fn transposed(self) -> Self {
+        Grid::new((0..self.cols).map(|col| self.col(col)).collect_vec())
+    }
 }

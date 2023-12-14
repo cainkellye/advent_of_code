@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 use super::iter_lines_from;
-use itertools::Itertools;
 use crate::utils::time;
+use itertools::Itertools;
 
 /// https://adventofcode.com/2023
 pub fn solve(day: usize, part: usize) {
@@ -36,6 +36,7 @@ const SOLUTIONS: &[[fn(); 2]] = &[
     [day11::part1, day11::part2],
     [day12::part1, day12::part2],
     [day13::part1, day13::part2],
+    [day14::part1, day14::part2],
 ];
 
 mod day01;
@@ -51,3 +52,4 @@ mod day10;
 mod day11;
 mod day12;
 mod day13;
+mod day14;

@@ -1,4 +1,4 @@
-use super::Grid;
+use crate::utils::Grid;
 use itertools::Itertools;
 
 pub fn find_mirror(grid: &Grid) -> usize {
