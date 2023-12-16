@@ -1,9 +1,6 @@
-use std::{
-    sync::{Arc, Mutex},
-    thread::{self, JoinHandle, Thread},
-};
-
 use crate::utils::Grid;
+use rayon::prelude::*;
+use std::{cell::RefCell, rc::Rc, sync::Arc};
 
 use super::*;
 pub fn part1() {
@@ -22,6 +19,7 @@ fn part2_internal(input_file: &str) -> usize {
     let grid = Arc::new(parse_input(input_file));
     (0..grid.rows)
         .cartesian_product(0..grid.cols)
+        .par_bridge()
         .map(|(r, c)| match (r, c) {
             (0, 0) => usize::max(
                 count_energized(0, 0, Towards::Right, grid.clone()),
@@ -50,12 +48,13 @@ fn part2_internal(input_file: &str) -> usize {
 }
 
 type TravelledDirections = Vec<Towards>;
-type TraceMatrix = Arc<Mutex<Vec<Vec<TravelledDirections>>>>;
+type TraceMatrix = Rc<RefCell<Vec<Vec<TravelledDirections>>>>;
 
+#[rustfmt::skip]
 fn count_energized(row: usize, col: usize, direction: Towards, grid: Arc<Grid>) -> usize {
-    let energized: TraceMatrix = Arc::new(Mutex::new(vec![vec![vec![]; grid.cols]; grid.rows]));
+    let energized: TraceMatrix = Rc::new(RefCell::new(vec![vec![vec![]; grid.cols]; grid.rows]));
     trace_light(LightState { row, col, direction, }, grid, energized.clone());
-    let energized = energized.lock().unwrap();
+    let energized = energized.borrow();
     energized
         .iter()
         .map(|row| row.iter().filter(|col| !col.is_empty()).count())
@@ -63,7 +62,12 @@ fn count_energized(row: usize, col: usize, direction: Towards, grid: Arc<Grid>) 
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum Towards { Up, Down, Left, Right, }
+enum Towards {
+    Up,
+    Down,
+    Left,
+    Right,
+}
 
 #[derive(Clone, Copy)]
 struct LightState {
@@ -74,16 +78,11 @@ struct LightState {
 
 #[rustfmt::skip]
 fn trace_light(mut light: LightState, grid: Arc<Grid>, energized: TraceMatrix) {
-    let mut spawned = Vec::<JoinHandle<()>>::new();
     loop {
-        {
-            let mut energized = energized.lock().unwrap();
-            if energized[light.row][light.col].contains(&light.direction) {
-                break;
-            } else {
-                energized[light.row][light.col].push(light.direction)
-            };
+        if energized.borrow()[light.row][light.col].contains(&light.direction) {
+            break;
         }
+        energized.borrow_mut()[light.row][light.col].push(light.direction);
         light.direction = match (grid.item(light.row, light.col), light.direction) {
             (b'.', direction) => direction,
 
@@ -101,37 +100,22 @@ fn trace_light(mut light: LightState, grid: Arc<Grid>, energized: TraceMatrix) {
             (b'|', Towards::Up | Towards::Down) => light.direction,
 
             (b'-', Towards::Up | Towards::Down) => {
-                let handle = {
-                    let (grid, energized) = (grid.clone(), energized.clone());
-                    thread::spawn(move || {
-                        trace_light( LightState { direction: Towards::Left, ..light }, grid.clone(), energized, )
-                    })
-                };
-                spawned.push(handle);
+                trace_light(LightState { direction: Towards::Left, ..light }, grid.clone(), energized.clone());
                 Towards::Right
             }
             (b'|', Towards::Left | Towards::Right) => {
-                let handle = {
-                    let (grid, energized) = (grid.clone(), energized.clone());
-                    thread::spawn(move || {
-                        trace_light( LightState { direction: Towards::Up, ..light }, grid.clone(), energized, )
-                    })
-                };
-                spawned.push(handle);
+                trace_light(LightState { direction: Towards::Up, ..light }, grid.clone(), energized.clone());
                 Towards::Down
             }
 
             _ => unreachable!(),
         };
         match light.direction {
-            Towards::Up => if light.row == 0 { break; } else { light.row -= 1 }
-            Towards::Down => if light.row == grid.rows - 1 { break; } else { light.row += 1 }
-            Towards::Left => if light.col == 0 { break; } else { light.col -= 1 }
-            Towards::Right => if light.col == grid.cols - 1 { break; } else { light.col += 1 }
+            Towards::Up => { if light.row == 0 { break; } else { light.row -= 1 } }
+            Towards::Down => { if light.row == grid.rows - 1 { break; } else { light.row += 1 } }
+            Towards::Left => { if light.col == 0 { break; } else { light.col -= 1 } }
+            Towards::Right => { if light.col == grid.cols - 1 { break; } else { light.col += 1 } }
         }
-    }
-    for handle in spawned {
-        handle.join().unwrap();
     }
 }
 
