@@ -82,4 +82,7 @@ impl Grid {
     pub fn transposed(self) -> Self {
         Grid::new((0..self.cols).map(|col| self.col(col)).collect_vec())
     }
+    pub fn item(&self, row: usize, col: usize) -> u8 {
+        self.buffer[row][col]
+    }
 }
