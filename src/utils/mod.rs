@@ -39,7 +39,7 @@ pub fn time(func: &fn()) {
     func();
 }
 
-#[derive(Eq, PartialOrd, Ord, Clone)]
+#[derive(Eq, PartialOrd, Ord, Clone, Hash)]
 pub struct Grid {
     pub buffer: Vec<Vec<u8>>,
     pub rows: usize,
