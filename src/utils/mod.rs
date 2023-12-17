@@ -86,3 +86,9 @@ impl Grid {
         self.buffer[row][col]
     }
 }
+
+#[derive(PartialEq, Eq, Clone, Copy)]
+pub enum Part {
+    One,
+    Two,
+}

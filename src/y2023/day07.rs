@@ -1,4 +1,5 @@
 use super::*;
+use crate::utils::Part;
 use std::cmp::Ordering;
 
 pub fn part1() {
@@ -6,12 +7,6 @@ pub fn part1() {
 }
 pub fn part2() {
     println!("{}", solve(Part::Two)); //251037509
-}
-
-#[derive(PartialEq, Eq, Clone, Copy)]
-enum Part {
-    One,
-    Two,
 }
 
 fn solve(p: Part) -> usize {
