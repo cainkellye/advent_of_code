@@ -1,7 +1,5 @@
 use super::*;
-use geo::polygon;
 use geo::Area;
-use geo::LineString;
 use geo::Polygon;
 
 pub fn part1() {
