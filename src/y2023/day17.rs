@@ -51,6 +51,7 @@ fn part1_internal(input_file: &str) -> usize {
     )
 }
 
+#[allow(clippy::too_many_arguments)] //This needs rework anyway
 fn find_min_path(
     from: Pos,
     grid: &Grid,
