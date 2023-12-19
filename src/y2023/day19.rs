@@ -1,6 +1,3 @@
-#![allow(unused)]
-use std::collections::HashMap;
-
 use super::*;
 
 pub fn part1() {

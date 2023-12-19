@@ -1,11 +1,12 @@
 use super::*;
+use std::collections::HashMap;
 
 pub(super) fn part2_internal(input_file: &str) -> isize {
     let workflows = parse_input(input_file);
     workflows["in"].count_accepted(
         MachinePartRange([(1, 4000), (1, 4000), (1, 4000), (1, 4000)]),
         &workflows,
-    ) // ? < 494144000000236
+    ) // 136146366355609
 }
 
 fn parse_input(input_file: &str) -> HashMap<String, Workflow> {
@@ -21,26 +22,13 @@ fn parse_input(input_file: &str) -> HashMap<String, Workflow> {
     workflows
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 struct MachinePartRange([(isize, isize); 4]);
-impl Default for MachinePartRange {
-    fn default() -> Self {
-        Self(Default::default())
-    }
-}
 impl MachinePartRange {
     fn product(&self) -> isize {
         self.0
             .iter()
             .map(|(start, end)| (end - start + 1).max(0))
-            .product()
-    }
-    fn product_except(&self, id: usize) -> isize {
-        self.0
-            .iter()
-            .enumerate()
-            .filter(|&(i, _)| i != id)
-            .map(|(_, (start, end))| (end - start + 1).max(0))
             .product()
     }
 }
@@ -57,37 +45,44 @@ impl Rule {
         workflows: &HashMap<String, Workflow>,
     ) -> (isize, MachinePartRange) {
         match self {
-            Rule::Lt(id, value, result) => {
-                let (start, end) = part.0[*id];
+            &Rule::Lt(id, value, ref result) => {
+                let (start, end) = part.0[id];
                 let (matched_start, matched_end) = (start, end.min(value - 1));
+                let mut matched = part;
+                matched.0[id] = (matched_start, matched_end);
+                part.0[id] = (start.max(value), end);
                 if result == "A" {
-                    ((matched_end - matched_start + 1).max(0) * part.product_except(*id), part)
-                } else if result != "R" {
-                    (workflows[result].count_accepted(part, workflows), MachinePartRange::default())
-                } else {
-                    part.0[*id] = (start.max(*value), end);
+                    (matched.product(), part)
+                } else if result == "R" {
                     (0, part)
+                } else {
+                    (workflows[result].count_accepted(matched, workflows), part)
                 }
             }
-            Rule::Gt(id, value, result) => {
-                let (start, end) = part.0[*id];
+            &Rule::Gt(id, value, ref result) => {
+                let (start, end) = part.0[id];
                 let (matched_start, matched_end) = (start.max(value + 1), end);
+                let mut matched = part;
+                matched.0[id] = (matched_start, matched_end);
+                part.0[id] = (start, end.min(value));
                 if result == "A" {
-                    ((matched_end - matched_start + 1).max(0) * part.product_except(*id), part)
-                } else if result != "R" {
-                    (workflows[result].count_accepted(part, workflows), MachinePartRange::default())
-                } else {
-                    part.0[*id] = (start, end.min(*value));
+                    (matched.product(), part)
+                } else if result == "R" {
                     (0, part)
+                } else {
+                    (workflows[result].count_accepted(matched, workflows), part)
                 }
             }
-            Rule::NoOp(result) => {
+            &Rule::NoOp(ref result) => {
                 if result == "A" {
-                    (part.product(), MachinePartRange::default())
+                    (part.product(), Default::default())
                 } else if result != "R" {
-                    (workflows[result].count_accepted(part, workflows), MachinePartRange::default())
+                    (
+                        workflows[result].count_accepted(part, workflows),
+                        Default::default(),
+                    )
                 } else {
-                    (0, MachinePartRange::default())
+                    (0, Default::default())
                 }
             }
         }

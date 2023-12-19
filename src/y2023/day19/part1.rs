@@ -1,4 +1,5 @@
 use super::*;
+use std::collections::HashMap;
 
 pub(super) fn part1_internal(input_file: &str) -> usize {
     let (workflows, machine_parts) = parse_input(input_file);
