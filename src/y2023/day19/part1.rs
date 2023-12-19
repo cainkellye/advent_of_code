@@ -63,7 +63,6 @@ enum EvalResult {
     Rejected,
     None,
 }
-
 impl From<&str> for EvalResult {
     fn from(value: &str) -> Self {
         match value {
@@ -100,7 +99,6 @@ impl Rule {
         }
     }
 }
-
 impl From<&str> for Rule {
     fn from(line: &str) -> Self {
         // a<2136:A
@@ -120,6 +118,7 @@ impl From<&str> for Rule {
         }
     }
 }
+
 struct Workflow {
     rules: Vec<Rule>,
 }
