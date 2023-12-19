@@ -1,5 +1,3 @@
-use std::{default, io::stdin};
-
 use super::*;
 pub fn part1() {
     println!("{:?}", part1_internal("res/2023/input10.txt")); // 6778

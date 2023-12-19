@@ -19,6 +19,6 @@ mod test {
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2::part2_internal("res/2023/test19.txt"), 0);
+        assert_eq!(part2::part2_internal("res/2023/test19.txt"), 167409079868000);
     }
 }
