@@ -73,7 +73,7 @@ impl Rule {
                     (workflows[result].count_accepted(matched, workflows), part)
                 }
             }
-            &Rule::NoOp(ref result) => {
+            Rule::NoOp(result) => {
                 if result == "A" {
                     (part.product(), Default::default())
                 } else if result != "R" {
