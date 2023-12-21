@@ -1,9 +1,6 @@
-#![allow(unused)]
-use num::Integer;
-use std::collections::{HashSet, VecDeque};
-
 use super::*;
 use crate::utils::Grid;
+use std::collections::{HashMap, HashSet, VecDeque};
 
 pub fn part1() {
     println!("{:?}", part1_internal("res/2023/input21.txt", 64, false));
@@ -24,27 +21,12 @@ fn part1_internal(input_file: &str, needed_steps: usize, visualize: bool) -> usi
                 .map(|col| Pos(row, col))
         })
         .unwrap();
-    let distances: Vec<Vec<Option<usize>>> = grid
-        .buffer
-        .iter()
-        .enumerate()
-        .map(|(row, line)| {
-            line.iter()
-                .enumerate()
-                .map(|(col, &c)| {
-                    if c == b'#' {
-                        None
-                    } else {
-                        Some(distance(Pos(row, col), start, &grid))
-                    }
-                })
-                .collect_vec()
-        })
-        .collect_vec();
+    let distances = map_distances(start, &grid);
+
     if visualize {
         for row in 0..grid.rows {
             for col in 0..grid.cols {
-                if let Some(dist) = distances[row][col] {
+                if let Some(dist) = distances.get(&Pos(row, col)) {
                     print!("{}{dist:<3}", grid.item(row, col) as char);
                 } else {
                     print!("{}   ", grid.item(row, col) as char)
@@ -54,34 +36,23 @@ fn part1_internal(input_file: &str, needed_steps: usize, visualize: bool) -> usi
         }
     }
     distances
-        .into_iter()
-        .flat_map(|line| line.into_iter())
-        .filter_map(|x| {
-            x.and_then(|c| {
-                if c <= needed_steps && (needed_steps - c) % 2 == 0 {
-                    Some(())
-                } else {
-                    None
-                }
-            })
-        })
+        .values()
+        .filter(|&&c| c <= needed_steps && (needed_steps - c) % 2 == 0)
         .count()
 }
 
 fn distance(from: Pos, to: Pos, grid: &Grid) -> usize {
-    let deltas = [(-1, 0), (0, -1), (1, 0), (0, 1)];
     let mut steps = VecDeque::<(Pos, usize)>::new();
     let mut touched = HashSet::<Pos>::new();
-    for pos in reachable(from, grid)
-    {
+    for pos in reachable(from, grid) {
         steps.push_back((pos, 1));
+        touched.insert(pos);
     }
     while let Some((pos, dist)) = steps.pop_front() {
         if pos == to {
             return dist;
         }
-        for pos in reachable(pos, grid)
-        {
+        for pos in reachable(pos, grid) {
             if !touched.contains(&pos) {
                 steps.push_back((pos, dist + 1));
                 touched.insert(pos);
@@ -89,6 +60,24 @@ fn distance(from: Pos, to: Pos, grid: &Grid) -> usize {
         }
     }
     999999
+}
+
+fn map_distances(from: Pos, grid: &Grid) -> HashMap<Pos, usize> {
+    let mut steps = VecDeque::<(Pos, usize)>::new();
+    let mut touched = HashMap::<Pos, usize>::new();
+    for pos in reachable(from, grid) {
+        steps.push_back((pos, 1));
+        touched.insert(pos, 1);
+    }
+    while let Some((pos, dist)) = steps.pop_front() {
+        for pos in reachable(pos, grid) {
+            if !touched.contains_key(&pos) {
+                steps.push_back((pos, dist + 1));
+                touched.insert(pos, dist + 1);
+            }
+        }
+    }
+    touched
 }
 
 fn reachable(pos: Pos, grid: &Grid) -> Vec<Pos> {
