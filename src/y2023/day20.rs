@@ -1,11 +1,10 @@
+use super::*;
 use num::Integer;
 use std::{
     cell::RefCell,
     collections::{HashMap, VecDeque},
     rc::Rc,
 };
-
-use super::*;
 pub fn part1() {
     println!("{:?}", part1_internal("res/2023/input20.txt"));
 }
@@ -145,7 +144,6 @@ impl Module for FlipFlop {
             self.initialized = true;
         }
     }
-
     fn connections_contains(&self, _: usize) -> bool {
         false //not relevant for puzzle solution
     }
