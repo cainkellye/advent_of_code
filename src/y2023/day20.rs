@@ -14,8 +14,8 @@ pub fn part2() {
 
 fn part1_internal(input_file: &str) -> usize {
     let mut modules = parse_input(input_file);
+    set_module_inputs(&mut modules);
     let mut message_bus = MessageQueue::new();
-    message_bus.initialize(&mut modules);
     for _ in 1..=1000 {
         message_bus.push_the_button(&mut modules);
     }
@@ -28,23 +28,14 @@ fn part1_internal(input_file: &str) -> usize {
 
 fn part2_internal(input_file: &str) -> usize {
     let mut modules = parse_input(input_file);
+    set_module_inputs(&mut modules);
     let mut message_queue = MessageQueue::new();
-    message_queue.initialize(&mut modules);
 
     // Get the conjunction that signals rx
-    let module_before_rx = *modules
-        .iter()
-        .find(|(_, module)| module.connections_contains(name_to_id("rx")))
-        .map(|(id, _)| id)
-        .unwrap();
+    let module_before_rx = get_module_inputs(name_to_id("rx"), &modules)[0];
 
     // Get the conjunctions that signal the one before rx
-    let modules_to_watch = modules
-        .iter()
-        .filter(|(_, module)| module.connections_contains(module_before_rx))
-        .map(|(id, _)| id)
-        .cloned()
-        .collect_vec();
+    let modules_to_watch = get_module_inputs(module_before_rx, &modules);
 
     // Search for the first high message from the modules we watch
     let first_high_message = Rc::new(RefCell::new(vec![0; modules_to_watch.len()]));
@@ -76,6 +67,22 @@ fn part2_internal(input_file: &str) -> usize {
 }
 
 type ModuleStore = HashMap<usize, Box<dyn Module>>;
+
+fn get_module_inputs(id: usize, modules: &ModuleStore) -> Vec<usize> {
+    modules
+        .iter()
+        .filter(|(_, module)| module.connections_contains(&id))
+        .map(|(id, _)| id)
+        .cloned()
+        .collect_vec()
+}
+
+fn set_module_inputs(modules: &mut ModuleStore) {
+    for id in modules.keys().copied().collect_vec() {
+        let inputs = get_module_inputs(id, modules);
+        modules.get_mut(&id).unwrap().set_inputs(inputs);
+    }
+}
 
 fn parse_input(input_file: &str) -> ModuleStore {
     let mut modules: ModuleStore = HashMap::new();
@@ -111,15 +118,14 @@ fn name_to_id(name: &str) -> usize {
 
 trait Module {
     fn receive(&mut self, message: Message, bus: &mut MessageQueue);
-    fn init(&mut self, message: Message, bus: &mut MessageQueue);
-    fn connections_contains(&self, id: usize) -> bool;
+    fn set_inputs(&mut self, inputs: Vec<usize>);
+    fn connections_contains(&self, id: &usize) -> bool;
 }
 
 struct FlipFlop {
     id: usize,
     connections: Vec<usize>,
     is_on: bool,
-    initialized: bool,
 }
 impl FlipFlop {
     fn new(id: usize, connections: Vec<usize>) -> Self {
@@ -127,7 +133,6 @@ impl FlipFlop {
             id,
             connections,
             is_on: false,
-            initialized: false,
         }
     }
 }
@@ -138,14 +143,9 @@ impl Module for FlipFlop {
             bus.send(self.id, self.is_on, &self.connections)
         }
     }
-    fn init(&mut self, _: Message, bus: &mut MessageQueue) {
-        if !self.initialized {
-            bus.send_init(self.id, &self.connections);
-            self.initialized = true;
-        }
-    }
-    fn connections_contains(&self, _: usize) -> bool {
-        false //not relevant for puzzle solution
+    fn set_inputs(&mut self, _: Vec<usize>) {}
+    fn connections_contains(&self, id: &usize) -> bool {
+        self.connections.contains(id)
     }
 }
 
@@ -153,7 +153,6 @@ struct Conjunction {
     id: usize,
     connections: Vec<usize>,
     memory: HashMap<usize, bool>,
-    initialized: bool,
 }
 impl Conjunction {
     fn new(id: usize, connections: Vec<usize>) -> Self {
@@ -161,7 +160,6 @@ impl Conjunction {
             id,
             connections,
             memory: HashMap::new(),
-            initialized: false,
         }
     }
 }
@@ -173,15 +171,13 @@ impl Module for Conjunction {
         let all_high = self.memory.values().all(|v| v == &true);
         bus.send(self.id, !all_high, &self.connections)
     }
-    fn init(&mut self, message: Message, bus: &mut MessageQueue) {
-        self.memory.insert(message.sender, false);
-        if !self.initialized {
-            bus.send_init(self.id, &self.connections);
-            self.initialized = true;
-        }
+    fn set_inputs(&mut self, inputs: Vec<usize>) {
+        inputs.into_iter().for_each(|input| {
+            self.memory.insert(input, false);
+        })
     }
-    fn connections_contains(&self, id: usize) -> bool {
-        self.connections.contains(&id)
+    fn connections_contains(&self, id: &usize) -> bool {
+        self.connections.contains(id)
     }
 }
 
@@ -198,11 +194,9 @@ impl Module for Broadcaster {
     fn receive(&mut self, message: Message, bus: &mut MessageQueue) {
         bus.send(self.id, message.is_high, &self.connections);
     }
-    fn init(&mut self, _: Message, bus: &mut MessageQueue) {
-        bus.send_init(self.id, &self.connections);
-    }
-    fn connections_contains(&self, _: usize) -> bool {
-        false //not relevant for puzzle solution
+    fn set_inputs(&mut self, _: Vec<usize>) {}
+    fn connections_contains(&self, id: &usize) -> bool {
+        self.connections.contains(id)
     }
 }
 
@@ -243,27 +237,6 @@ impl MessageQueue {
                 target,
                 is_high,
             });
-        }
-    }
-    fn send_init(&mut self, sender: usize, targets: &Vec<usize>) {
-        for &target in targets {
-            self.queue.push_back(Message {
-                sender,
-                target,
-                is_high: false,
-            });
-        }
-    }
-    fn initialize(&mut self, modules: &mut ModuleStore) {
-        self.queue.push_back(Message {
-            sender: 0,
-            target: 0,
-            is_high: false,
-        });
-        while let Some(message) = self.queue.pop_front() {
-            if let Some(module) = modules.get_mut(&message.target) {
-                module.init(message, self);
-            }
         }
     }
     fn push_the_button(&mut self, modules: &mut ModuleStore) -> Option<Message> {
