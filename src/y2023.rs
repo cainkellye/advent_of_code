@@ -42,6 +42,7 @@ const SOLUTIONS: &[[fn(); 2]] = &[
     [day18::part1, day18::part2],
     [day19::part1, day19::part2],
     [day20::part1, day20::part2],
+    [day21::part1, day21::part2],
 ];
 
 mod day01;
@@ -64,3 +65,4 @@ mod day17;
 mod day18;
 mod day19;
 mod day20;
+mod day21;
