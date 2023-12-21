@@ -1,9 +1,5 @@
 use crate::utils::{Grid, Part};
-use std::{
-    cell::{Cell, RefCell},
-    collections::HashMap,
-    rc::Rc,
-};
+use std::collections::{HashMap, VecDeque};
 
 use super::*;
 pub fn part1() {
@@ -13,137 +9,100 @@ pub fn part2() {
     println!("{:?}", part2_internal("res/2023/input17.txt")); // 1106
 }
 
-type Minimums = Rc<RefCell<HashMap<(Pos, (Towards, u8)), usize>>>;
+struct Step(Towards, u8, Pos, usize);
 
 fn part1_internal(input_file: &str) -> usize {
     let grid = parse_input(input_file);
-    let treshold = Rc::new(Cell::new(
-        (1..grid.rows)
-            .zip(1..grid.cols)
-            .map(|(r, c)| (grid.item(r, c) + grid.item(r - 1, c).min(grid.item(r, c - 1))) as usize)
-            .sum::<usize>(),
-    ));
-    let minimums: Minimums = Rc::new(RefCell::new(HashMap::new()));
-    usize::min(
-        find_min_path(
-            Pos(1, 0),
-            &grid,
-            vec![Pos(0, 0)],
-            (Towards::Down, 1),
-            grid.item(1, 0) as usize,
-            treshold.clone(),
-            minimums.clone(),
-            Part::One,
-        )
-        .unwrap_or(9999),
-        find_min_path(
-            Pos(0, 1),
-            &grid,
-            vec![Pos(0, 0)],
-            (Towards::Right, 1),
-            grid.item(0, 1) as usize,
-            treshold,
-            minimums.clone(),
-            Part::One,
-        )
-        .unwrap_or(9999),
-    )
+    let mut step_queue = VecDeque::new();
+    step_queue.push_back(Step(Towards::Down, 1, Pos(1, 0), grid.item(1, 0) as usize));
+    step_queue.push_back(Step(Towards::Right, 1, Pos(0, 1), grid.item(0, 1) as usize));
+    find_min_path(step_queue, &grid, Part::One)
 }
 
-#[allow(clippy::too_many_arguments)] //This needs rework anyway
-fn find_min_path(
-    from: Pos,
-    grid: &Grid,
-    prev_moves: Vec<Pos>,
-    prev_directions: (Towards, u8),
-    current_weight: usize,
-    treshold: Rc<Cell<usize>>,
-    minimums: Minimums,
-    part: Part,
-) -> Option<usize> {
-    if current_weight >= treshold.get() {
-        return None;
-    }
+fn part2_internal(input_file: &str) -> usize {
+    let grid = parse_input(input_file);
+    let mut step_queue = VecDeque::new();
+    step_queue.push_back(Step(Towards::Down, 1, Pos(1, 0), grid.item(1, 0) as usize));
+    step_queue.push_back(Step(Towards::Right, 1, Pos(0, 1), grid.item(0, 1) as usize));
+    find_min_path(step_queue, &grid, Part::Two)
+}
+
+type BestSteps = HashMap<(Towards, u8, Pos), usize>;
+
+fn find_min_path(mut step_queue: VecDeque<Step>, grid: &Grid, part: Part) -> usize {
     let bounds = Pos(grid.rows - 1, grid.cols - 1);
-    let mut steps = get_valid_steps(from, bounds, prev_directions, part);
-    steps.sort_by_key(|(_, Pos(row, col))| bounds.0 - row + bounds.1 - col);
-    steps
-        .into_iter()
-        .filter_map(|(direction, pos)| {
-            let weight = current_weight + grid.item(pos.0, pos.1) as usize;
-            let (last_direction, dir_count) = prev_directions;
-            let prev_directions = if last_direction == direction {
-                (direction, dir_count + 1)
+    let mut best_steps: BestSteps = HashMap::new();
+    step_queue
+        .make_contiguous()
+        .sort_by_key(|&Step(_, _, _, weight)| weight);
+    let mut paths_weight = 99999;
+    while let Some(Step(direction, count, pos, weight)) = step_queue.pop_front() {
+        if paths_weight < weight {
+            continue;
+        }
+        if let Some(best) = best_steps.get_mut(&(direction, count, pos)) {
+            if weight < *best {
+                *best = weight;
             } else {
-                (direction, 1)
-            };
-            if pos == bounds {
-                if part == Part::One || prev_directions.1 >= 4 {
-                    if weight < treshold.get() {
-                        println!(
-                            //"### Prev: {prev_moves:?} => {from:?} => {pos:?}, {weight} < {treshold}",
-                            "### New {weight} < {treshold:?}",
-                        );
-                        treshold.set(weight);
-                        Some(weight)
-                    } else {
-                        //println!("### Threshold not beaten: {treshold:?}");
-                        None
-                    }
-                } else {
-                    None
-                }
-            } else {
-                let min = minimums.borrow().get(&(pos, prev_directions)).copied();
-                if min.is_some_and(|min| min <= weight) {
-                    return None;
-                } else {
-                    minimums.borrow_mut().insert((pos, prev_directions), weight);
-                }
-
-                let mut prev_moves = prev_moves.clone();
-                prev_moves.push(from);
-                find_min_path(
-                    pos,
-                    grid,
-                    prev_moves,
-                    prev_directions,
-                    weight,
-                    treshold.clone(),
-                    minimums.clone(),
-                    part,
-                )
+                continue;
             }
-        })
-        .min()
+        } else {
+            best_steps.insert((direction, count, pos), weight);
+        }
+        if pos == bounds {
+            if part == Part::Two && count < 4 {
+                continue;
+            }
+            paths_weight = weight;
+            continue;
+        }
+        let next_steps = get_valid_steps(Step(direction, count, pos, weight), grid, &bounds, part);
+        for next in next_steps {
+            let pos = step_queue
+                .binary_search_by_key(&next.3, |&Step(_, _, _, weight)| weight)
+                .unwrap_or_else(|x| x);
+            step_queue.insert(pos, next);
+        }
+    }
+    paths_weight
 }
 
-fn get_valid_steps(
-    from: Pos,
-    bounds: Pos,
-    prev_directions: (Towards, u8),
-    part: Part,
-) -> Vec<(Towards, Pos)> {
+fn get_valid_steps(from: Step, grid: &Grid, bounds: &Pos, part: Part) -> Vec<Step> {
     let mut valid = vec![];
-    let (last_direction, dir_count) = prev_directions;
+    let Step(last_direction, dir_count, pos, weight) = from;
     if part == Part::One {
         if dir_count < 3 {
-            if let Some(new_pos) = from.step(last_direction, &bounds) {
-                valid.push((last_direction, new_pos));
+            if let Some(new_pos) = pos.step(last_direction, bounds) {
+                valid.push(Step(
+                    last_direction,
+                    dir_count + 1,
+                    new_pos,
+                    weight + grid.item(new_pos.0, new_pos.1) as usize,
+                ));
             }
         }
         for direction in [
             last_direction.clockwise(),
             last_direction.counter_clockwise(),
         ] {
-            if let Some(new_pos) = from.step(direction, &bounds) {
-                valid.push((direction, new_pos));
+            if let Some(new_pos) = pos.step(direction, bounds) {
+                valid.push(Step(
+                    direction,
+                    1,
+                    new_pos,
+                    weight + grid.item(new_pos.0, new_pos.1) as usize,
+                ));
             }
         }
     } else {
         if dir_count < 10 {
-            if let Some(new_pos) = from.step(last_direction, &bounds) {
-                valid.push((last_direction, new_pos));
+            if let Some(new_pos) = pos.step(last_direction, bounds) {
+                valid.push(Step(
+                    last_direction,
+                    dir_count + 1,
+                    new_pos,
+                    weight + grid.item(new_pos.0, new_pos.1) as usize,
+                ));
             }
         }
         if dir_count >= 4 {
@@ -151,43 +110,18 @@ fn get_valid_steps(
                 last_direction.clockwise(),
                 last_direction.counter_clockwise(),
             ] {
-                if let Some(new_pos) = from.step(direction, &bounds) {
-                    valid.push((direction, new_pos));
+                if let Some(new_pos) = pos.step(direction, bounds) {
+                    valid.push(Step(
+                        direction,
+                        1,
+                        new_pos,
+                        weight + grid.item(new_pos.0, new_pos.1) as usize,
+                    ));
                 }
             }
         }
     }
     valid
-}
-
-fn part2_internal(input_file: &str) -> usize {
-    let grid = parse_input(input_file);
-    let treshold = Rc::new(Cell::new(1400));
-    let minimums: Minimums = Rc::new(RefCell::new(HashMap::new()));
-    usize::min(
-        find_min_path(
-            Pos(1, 0),
-            &grid,
-            vec![Pos(0, 0)],
-            (Towards::Down, 1),
-            grid.item(1, 0) as usize,
-            treshold.clone(),
-            minimums.clone(),
-            Part::Two,
-        )
-        .unwrap_or(9999),
-        find_min_path(
-            Pos(0, 1),
-            &grid,
-            vec![Pos(0, 0)],
-            (Towards::Right, 1),
-            grid.item(0, 1) as usize,
-            treshold,
-            minimums.clone(),
-            Part::Two,
-        )
-        .unwrap_or(9999),
-    )
 }
 
 fn parse_input(input_file: &str) -> Grid {
