@@ -1,13 +1,12 @@
 #![allow(unused)]
-use std::collections::{HashSet, VecDeque};
 use num::Integer;
+use std::collections::{HashSet, VecDeque};
 
 use super::*;
 use crate::utils::Grid;
 
 pub fn part1() {
-    println!("{:?}", part1_internal("res/2023/input21.txt", 64, false)); // 3338 < ? < 3597
-    //println!("{:?}", part1_internal("res/2023/test21.txt", 6, true));
+    println!("{:?}", part1_internal("res/2023/input21.txt", 64, false));
 }
 pub fn part2() {
     println!("{:?}", part2_internal("res/2023/input21.txt"));
@@ -73,10 +72,7 @@ fn distance(from: Pos, to: Pos, grid: &Grid) -> usize {
     let deltas = [(-1, 0), (0, -1), (1, 0), (0, 1)];
     let mut steps = VecDeque::<(Pos, usize)>::new();
     let mut touched = HashSet::<Pos>::new();
-    for pos in deltas
-        .iter()
-        .filter_map(|&delta| from.with_delta(delta, grid.rows, grid.cols))
-        .filter(|&Pos(row, col)| grid.item(row, col) != b'#')
+    for pos in reachable(from, grid)
     {
         steps.push_back((pos, 1));
     }
@@ -84,11 +80,7 @@ fn distance(from: Pos, to: Pos, grid: &Grid) -> usize {
         if pos == to {
             return dist;
         }
-        for pos in deltas
-            .iter()
-            .filter_map(|&delta| pos.with_delta(delta, grid.rows, grid.cols))
-            .filter(|&Pos(row, col)| grid.item(row, col) != b'#')
-            .sorted_by_key(|pos| pos.0.abs_diff(to.0) + pos.1.abs_diff(to.1))
+        for pos in reachable(pos, grid)
         {
             if !touched.contains(&pos) {
                 steps.push_back((pos, dist + 1));
@@ -97,6 +89,14 @@ fn distance(from: Pos, to: Pos, grid: &Grid) -> usize {
         }
     }
     999999
+}
+
+fn reachable(pos: Pos, grid: &Grid) -> Vec<Pos> {
+    [(-1, 0), (0, -1), (1, 0), (0, 1)]
+        .iter()
+        .filter_map(|&delta| pos.with_delta(delta, grid.rows, grid.cols))
+        .filter(|&Pos(row, col)| grid.item(row, col) != b'#')
+        .collect_vec()
 }
 
 fn part2_internal(input_file: &str) -> usize {
