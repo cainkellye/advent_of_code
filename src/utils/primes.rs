@@ -7,7 +7,7 @@ pub fn is_prime(n: usize) -> bool {
         false
     } else {
         let max_p = (n as f64).sqrt().ceil() as usize;
-        (5..=max_p)
+        !(5..=max_p)
             .step_by(6)
             .any(|p| n % p == 0 || n % (&p + 2) == 0)
     }
@@ -51,7 +51,7 @@ impl Iterator for Prime {
 
 pub fn list_primes(upto: usize) -> Vec<usize> {
     let sieve = prime_sieve(upto);
-    (0..=upto).filter(|n| sieve[*n]).collect()
+    (2..=upto).filter(|n| sieve[*n]).collect()
 }
 
 pub fn prime_sieve(upto: usize) -> Vec<bool> {
@@ -70,10 +70,8 @@ pub fn prime_sieve(upto: usize) -> Vec<bool> {
 }
 
 pub fn prime_factors(mut number: usize) -> HashMap<usize, u32> {
-    let max: usize = (number as f64).sqrt() as usize;
     let mut factors = HashMap::new();
-    let primes = Prime::new();
-    for n in primes {
+    for n in Prime::new() {
         let mut count = 0;
         while number % n == 0 {
             number /= n;
@@ -82,9 +80,29 @@ pub fn prime_factors(mut number: usize) -> HashMap<usize, u32> {
         if count > 0 {
             factors.insert(n, count);
         }
+        if n > number {
+            break;
+        }
     }
     if number > 1 {
         factors.insert(number, 1);
+    }
+    factors
+}
+
+pub fn prime_factors_flat(mut number: usize) -> Vec<usize> {
+    let mut factors = Vec::new();
+    for n in Prime::new() {
+        while number % n == 0 {
+            number /= n;
+            factors.push(n);
+        }
+        if n > number {
+            break;
+        }
+    }
+    if number > 1 {
+        factors.push(number);
     }
     factors
 }
