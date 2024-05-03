@@ -1,6 +1,6 @@
 use crate::utils::{Grid, Part};
 
-use self::pathfinder::Map;
+use self::pathfinder::{Map, Step};
 
 use super::*;
 pub fn part1() {
@@ -13,68 +13,69 @@ pub fn part2() {
 fn part1_internal(input_file: &str) -> usize {
     let grid = parse_input(input_file);
     let start = [
-        Step(Towards::Down, 1, Pos(1, 0), grid.item(1, 0) as usize),
-        Step(Towards::Right, 1, Pos(0, 1), grid.item(0, 1) as usize),
+        Step {
+            data: StepData(Towards::Down, 1, Pos(1, 0)),
+            weight: grid.item(1, 0) as usize,
+        },
+        Step {
+            data: StepData(Towards::Right, 1, Pos(0, 1)),
+            weight: grid.item(0, 1) as usize,
+        },
     ];
     let bounds = Pos(grid.rows - 1, grid.cols - 1);
     let pathfinder = Pathfinder(Part::One, grid);
-    pathfinder.find_min_weight(start, |Step(_, _, pos, _)| pos == bounds)
+    pathfinder.find_min_weight(
+        start,
+        |Step {
+             data: StepData(_, _, pos),
+             ..
+         }| pos == bounds,
+    )
 }
 
 fn part2_internal(input_file: &str) -> usize {
     let grid = parse_input(input_file);
     let start = [
-        Step(Towards::Down, 1, Pos(1, 0), grid.item(1, 0) as usize),
-        Step(Towards::Right, 1, Pos(0, 1), grid.item(0, 1) as usize),
+        Step {
+            data: StepData(Towards::Down, 1, Pos(1, 0)),
+            weight: grid.item(1, 0) as usize,
+        },
+        Step {
+            data: StepData(Towards::Right, 1, Pos(0, 1)),
+            weight: grid.item(0, 1) as usize,
+        },
     ];
     let bounds = Pos(grid.rows - 1, grid.cols - 1);
     let pathfinder = Pathfinder(Part::Two, grid);
-    pathfinder.find_min_weight(start, |Step(_, count, pos, _)| pos == bounds && count >= 4)
+    pathfinder.find_min_weight(
+        start,
+        |Step {
+             data: StepData(_, count, pos),
+             ..
+         }| pos == bounds && count >= 4,
+    )
 }
 
-#[derive(Debug, Eq, Clone, Copy)]
-struct Step(Towards, u8, Pos, usize);
-
-impl std::hash::Hash for Step {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.0.hash(state);
-        self.1.hash(state);
-        self.2.hash(state);
-    }
-}
-
-impl PartialEq for Step {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0 && self.1 == other.1 && self.2 == other.2
-    }
-}
-
-impl pathfinder::Step for Step {
-    type Weight = usize;
-
-    fn get_weight(&self) -> Self::Weight {
-        self.3
-    }
-}
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+struct StepData(Towards, u8, Pos);
 
 struct Pathfinder(Part, Grid);
-impl Map for Pathfinder {
-    type Step = Step;
-
-    fn get_valid_steps(&self, from: Self::Step) -> Vec<Self::Step> {
+impl Map<StepData, usize> for Pathfinder {
+    fn get_valid_steps(&self, from: Step<StepData, usize>) -> Vec<Step<StepData, usize>> {
         let grid = &self.1;
         let bounds = &Pos(self.1.rows - 1, self.1.cols - 1);
         let mut valid = vec![];
-        let Step(last_direction, dir_count, pos, weight) = from;
+        let Step {
+            data: StepData(last_direction, dir_count, pos),
+            weight,
+        } = from;
         if self.0 == Part::One {
             if dir_count < 3 {
                 if let Some(new_pos) = pos.step(last_direction, bounds) {
-                    valid.push(Step(
-                        last_direction,
-                        dir_count + 1,
-                        new_pos,
-                        weight + grid.item(new_pos.0, new_pos.1) as usize,
-                    ));
+                    valid.push(Step {
+                        data: StepData(last_direction, dir_count + 1, new_pos),
+                        weight: weight + grid.item(new_pos.0, new_pos.1) as usize,
+                    });
                 }
             }
             for direction in [
@@ -82,23 +83,19 @@ impl Map for Pathfinder {
                 last_direction.counter_clockwise(),
             ] {
                 if let Some(new_pos) = pos.step(direction, bounds) {
-                    valid.push(Step(
-                        direction,
-                        1,
-                        new_pos,
-                        weight + grid.item(new_pos.0, new_pos.1) as usize,
-                    ));
+                    valid.push(Step {
+                        data: StepData(direction, 1, new_pos),
+                        weight: weight + grid.item(new_pos.0, new_pos.1) as usize,
+                    });
                 }
             }
         } else {
             if dir_count < 10 {
                 if let Some(new_pos) = pos.step(last_direction, bounds) {
-                    valid.push(Step(
-                        last_direction,
-                        dir_count + 1,
-                        new_pos,
-                        weight + grid.item(new_pos.0, new_pos.1) as usize,
-                    ));
+                    valid.push(Step {
+                        data: StepData(last_direction, dir_count + 1, new_pos),
+                        weight: weight + grid.item(new_pos.0, new_pos.1) as usize,
+                    });
                 }
             }
             if dir_count >= 4 {
@@ -107,12 +104,10 @@ impl Map for Pathfinder {
                     last_direction.counter_clockwise(),
                 ] {
                     if let Some(new_pos) = pos.step(direction, bounds) {
-                        valid.push(Step(
-                            direction,
-                            1,
-                            new_pos,
-                            weight + grid.item(new_pos.0, new_pos.1) as usize,
-                        ));
+                        valid.push(Step {
+                            data: StepData(direction, 1, new_pos),
+                            weight: weight + grid.item(new_pos.0, new_pos.1) as usize,
+                        });
                     }
                 }
             }
@@ -120,7 +115,7 @@ impl Map for Pathfinder {
         valid
     }
 
-    fn get_cutoff() -> <Self::Step as pathfinder::Step>::Weight {
+    fn get_cutoff() -> usize {
         99999
     }
 }
@@ -198,45 +193,43 @@ mod pathfinder {
         hash::Hash,
     };
 
-    pub trait Step: PartialEq + Eq + Hash + Copy {
-        type Weight: Ord + Copy;
-        fn get_weight(&self) -> Self::Weight;
+    #[derive(Debug, Clone, Copy)]
+    pub struct Step<Data: Eq + Hash + Copy, Weight: PartialOrd + Copy> {
+        pub weight: Weight,
+        pub data: Data,
     }
-    pub trait Map {
-        type Step: Step;
-
-        fn get_valid_steps(&self, from: Self::Step) -> Vec<Self::Step>;
-        fn get_cutoff() -> <Self::Step as Step>::Weight;
+    pub trait Map<Data: Eq + Hash + Copy, Weight: PartialOrd + Copy> {
+        fn get_valid_steps(&self, from: Step<Data, Weight>) -> Vec<Step<Data, Weight>>;
+        fn get_cutoff() -> Weight;
 
         fn find_min_weight<Start>(
             &self,
             start: Start,
-            is_terminal: impl Fn(Self::Step) -> bool,
-        ) -> <Self::Step as Step>::Weight
+            is_terminal: impl Fn(Step<Data, Weight>) -> bool,
+        ) -> Weight
         where
-            Start: IntoIterator<Item = Self::Step>,
+            Start: IntoIterator<Item = Step<Data, Weight>>,
         {
-            // let mut path = Vec::<Self::Step>::new();
-            let mut best_steps = HashMap::<Self::Step, <Self::Step as Step>::Weight>::new();
+            let mut best_steps = HashMap::<Data, Weight>::new();
             let mut step_queue = VecDeque::from_iter(start);
             step_queue
                 .make_contiguous()
-                .sort_unstable_by_key(|step| step.get_weight());
+                .sort_unstable_by(|a, b| a.weight.partial_cmp(&b.weight).unwrap());
 
             let mut path_weight = Self::get_cutoff();
             while let Some(step) = step_queue.pop_front() {
-                let weight = step.get_weight();
+                let weight = step.weight;
                 if path_weight < weight {
                     continue;
                 }
-                if let Some(best) = best_steps.get_mut(&step) {
+                if let Some(best) = best_steps.get_mut(&step.data) {
                     if weight < *best {
                         *best = weight;
                     } else {
                         continue;
                     }
                 } else {
-                    best_steps.insert(step, weight);
+                    best_steps.insert(step.data, weight);
                 }
                 if is_terminal(step) {
                     path_weight = weight;
@@ -244,14 +237,13 @@ mod pathfinder {
                 }
                 let next_steps = Self::get_valid_steps(&self, step);
                 for next in next_steps {
-                    let next_w = next.get_weight();
+                    let next_w = next.weight;
                     let pos = step_queue
-                        .binary_search_by(|&s| s.get_weight().partial_cmp(&next_w).unwrap())
+                        .binary_search_by(|&s| s.weight.partial_cmp(&next_w).unwrap())
                         .unwrap_or_else(|x| x);
                     step_queue.insert(pos, next);
                 }
             }
-
             path_weight
         }
     }
