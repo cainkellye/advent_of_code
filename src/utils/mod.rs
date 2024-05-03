@@ -7,6 +7,7 @@ use std::{
 };
 
 pub mod primes;
+pub mod pathfinder;
 
 pub fn merge_ranges_in_place(mut ranges: Vec<Range<usize>>) -> Vec<Range<usize>> {
     //sort the ranges by start
