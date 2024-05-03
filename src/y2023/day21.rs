@@ -41,7 +41,7 @@ fn part1_internal(input_file: &str, needed_steps: usize, visualize: bool) -> usi
         .count()
 }
 
-fn distance(from: Pos, to: Pos, grid: &Grid) -> usize {
+fn _distance(from: Pos, to: Pos, grid: &Grid) -> usize {
     let mut steps = VecDeque::<(Pos, usize)>::new();
     let mut touched = HashSet::<Pos>::new();
     for pos in reachable(from, grid) {

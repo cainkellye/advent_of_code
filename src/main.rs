@@ -5,9 +5,9 @@ use std::{
     io::{BufRead, BufReader, Read},
 };
 
+mod utils;
 mod y2022;
 mod y2023;
-mod utils;
 
 fn main() {
     let args = args().collect_vec();
