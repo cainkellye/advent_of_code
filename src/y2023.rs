@@ -1,3 +1,4 @@
+#![allow(unused)]
 use super::iter_lines_from;
 use crate::utils::time;
 use itertools::Itertools;
