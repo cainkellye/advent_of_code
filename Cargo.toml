@@ -1,17 +1,17 @@
 [package]
 name = "advent_of_code"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-itertools = "0.12.0"
-ndarray = "0.15.6"
-regex = "1.10.2"
-rayon = "1.8.0"
+itertools = "0.13.0"
+ndarray = "0.16.1"
+regex = "1.11.1"
+rayon = "1.10.0"
 roots = "0.0.8"
-num = "0.4.1"
-memoize = "0.4.1"
+num = "0.4.3"
+memoize = "0.4.2"
 ansi-hex-color = "0.1.1"
-geo = "0.27.0"
+geo = "0.29.2"

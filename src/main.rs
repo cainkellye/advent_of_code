@@ -16,13 +16,13 @@ fn main() {
         y2024::solve_all();
         return;
     }
-    let day: usize = args.get(1).map_or(1, |s| s.parse::<usize>().unwrap());
+    let day: usize = args.get(1).map_or(1, |s| s.parse().unwrap());
     if args.len() == 2 {
         y2024::solve(day, 1);
         y2024::solve(day, 2);
         return;
     }
-    let part: usize = args.get(2).map_or(1, |s| s.parse::<usize>().unwrap());
+    let part: usize = args.get(2).map_or(1, |s| s.parse().unwrap());
     y2024::solve(day, part);
 }
 
@@ -32,7 +32,6 @@ fn iter_lines_from(path: &str) -> impl Iterator<Item = String> {
     lines.lines().map_while(Result::ok)
 }
 
-#[allow(unused)]
 fn read_to_string(path: &str) -> String {
     let mut file = File::open(path).expect("Can't open file.");
     let mut input = String::new();

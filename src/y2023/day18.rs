@@ -1,5 +1,5 @@
 use super::*;
-use geo::{Area, EuclideanLength, LineString, Polygon};
+use geo::{Area, Euclidean, Length, Line, LineString, Polygon};
 
 pub fn part1() {
     println!("{:?}", part1_internal("res/2023/input18.txt")); // 47675
@@ -22,7 +22,7 @@ fn part1_internal(input_file: &str) -> usize {
         digged.push(position);
     }
     let line_string = LineString::from(digged);
-    let trench = line_string.euclidean_length() as usize;
+    let trench = line_string.length::<Euclidean>() as usize;
     Polygon::new(line_string, vec![]).unsigned_area() as usize + trench / 2 + 1
 }
 
@@ -41,7 +41,7 @@ fn part2_internal(input_file: &str) -> usize {
         digged.push(position);
     }
     let line_string = LineString::from(digged);
-    let trench = line_string.euclidean_length() as usize;
+    let trench = line_string.length::<Euclidean>() as usize;
     Polygon::new(line_string, vec![]).unsigned_area() as usize + trench / 2 + 1
 }
 
