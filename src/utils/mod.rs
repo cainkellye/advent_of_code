@@ -6,8 +6,8 @@ use std::{
     time::SystemTime,
 };
 
-pub mod primes;
 pub mod pathfinder;
+pub mod primes;
 
 pub fn merge_ranges_in_place(mut ranges: Vec<Range<usize>>) -> Vec<Range<usize>> {
     //sort the ranges by start
@@ -83,8 +83,15 @@ impl Grid {
     pub fn transposed(self) -> Self {
         Grid::new((0..self.cols).map(|col| self.col(col)).collect_vec())
     }
-    pub fn item(&self, row: usize, col: usize) -> u8 {
+    pub fn get_unchecked(&self, row: usize, col: usize) -> u8 {
         self.buffer[row][col]
+    }
+
+    pub fn get(&self, row: isize, col: isize) -> Option<u8> {
+        if row < 0 || col < 0 || row as usize >= self.rows || col as usize >= self.cols {
+            return None;
+        }
+        Some(self.buffer[row as usize][col as usize])
     }
 }
 

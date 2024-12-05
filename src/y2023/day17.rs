@@ -1,5 +1,5 @@
-use crate::utils::{Grid, Part};
 use crate::utils::pathfinder::{Map, Step};
+use crate::utils::{Grid, Part};
 
 use super::*;
 pub fn part1() {
@@ -14,11 +14,11 @@ fn part1_internal(input_file: &str) -> usize {
     let start = [
         Step {
             data: StepData(Towards::Down, 1, Pos(1, 0)),
-            weight: grid.item(1, 0) as usize,
+            weight: grid.get_unchecked(1, 0) as usize,
         },
         Step {
             data: StepData(Towards::Right, 1, Pos(0, 1)),
-            weight: grid.item(0, 1) as usize,
+            weight: grid.get_unchecked(0, 1) as usize,
         },
     ];
     let bounds = Pos(grid.rows - 1, grid.cols - 1);
@@ -37,11 +37,11 @@ fn part2_internal(input_file: &str) -> usize {
     let start = [
         Step {
             data: StepData(Towards::Down, 1, Pos(1, 0)),
-            weight: grid.item(1, 0) as usize,
+            weight: grid.get_unchecked(1, 0) as usize,
         },
         Step {
             data: StepData(Towards::Right, 1, Pos(0, 1)),
-            weight: grid.item(0, 1) as usize,
+            weight: grid.get_unchecked(0, 1) as usize,
         },
     ];
     let bounds = Pos(grid.rows - 1, grid.cols - 1);
@@ -73,7 +73,7 @@ impl Map<StepData, usize> for Pathfinder {
                 if let Some(new_pos) = pos.step(last_direction, bounds) {
                     valid.push(Step {
                         data: StepData(last_direction, dir_count + 1, new_pos),
-                        weight: weight + grid.item(new_pos.0, new_pos.1) as usize,
+                        weight: weight + grid.get_unchecked(new_pos.0, new_pos.1) as usize,
                     });
                 }
             }
@@ -84,7 +84,7 @@ impl Map<StepData, usize> for Pathfinder {
                 if let Some(new_pos) = pos.step(direction, bounds) {
                     valid.push(Step {
                         data: StepData(direction, 1, new_pos),
-                        weight: weight + grid.item(new_pos.0, new_pos.1) as usize,
+                        weight: weight + grid.get_unchecked(new_pos.0, new_pos.1) as usize,
                     });
                 }
             }
@@ -93,7 +93,7 @@ impl Map<StepData, usize> for Pathfinder {
                 if let Some(new_pos) = pos.step(last_direction, bounds) {
                     valid.push(Step {
                         data: StepData(last_direction, dir_count + 1, new_pos),
-                        weight: weight + grid.item(new_pos.0, new_pos.1) as usize,
+                        weight: weight + grid.get_unchecked(new_pos.0, new_pos.1) as usize,
                     });
                 }
             }
@@ -105,7 +105,7 @@ impl Map<StepData, usize> for Pathfinder {
                     if let Some(new_pos) = pos.step(direction, bounds) {
                         valid.push(Step {
                             data: StepData(direction, 1, new_pos),
-                            weight: weight + grid.item(new_pos.0, new_pos.1) as usize,
+                            weight: weight + grid.get_unchecked(new_pos.0, new_pos.1) as usize,
                         });
                     }
                 }

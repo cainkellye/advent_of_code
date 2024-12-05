@@ -27,9 +27,9 @@ fn part1_internal(input_file: &str, needed_steps: usize, visualize: bool) -> usi
         for row in 0..grid.rows {
             for col in 0..grid.cols {
                 if let Some(dist) = distances.get(&Pos(row, col)) {
-                    print!("{}{dist:<3}", grid.item(row, col) as char);
+                    print!("{}{dist:<3}", grid.get_unchecked(row, col) as char);
                 } else {
-                    print!("{}   ", grid.item(row, col) as char)
+                    print!("{}   ", grid.get_unchecked(row, col) as char)
                 }
             }
             println!();
@@ -84,7 +84,7 @@ fn reachable(pos: Pos, grid: &Grid) -> Vec<Pos> {
     [(-1, 0), (0, -1), (1, 0), (0, 1)]
         .iter()
         .filter_map(|&delta| pos.with_delta(delta, grid.rows, grid.cols))
-        .filter(|&Pos(row, col)| grid.item(row, col) != b'#')
+        .filter(|&Pos(row, col)| grid.get_unchecked(row, col) != b'#')
         .collect_vec()
 }
 

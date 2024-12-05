@@ -83,7 +83,7 @@ fn trace_light(mut light: LightState, grid: Arc<Grid>, energized: TraceMatrix) {
             break;
         }
         energized.borrow_mut()[light.row][light.col].push(light.direction);
-        light.direction = match (grid.item(light.row, light.col), light.direction) {
+        light.direction = match (grid.get_unchecked(light.row, light.col), light.direction) {
             (b'.', direction) => direction,
 
             (b'/', Towards::Right) => Towards::Up,
