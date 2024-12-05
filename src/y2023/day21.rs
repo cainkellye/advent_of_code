@@ -71,10 +71,10 @@ fn map_distances(from: Pos, grid: &Grid) -> HashMap<Pos, usize> {
     }
     while let Some((pos, dist)) = steps.pop_front() {
         for pos in reachable(pos, grid) {
-            if !touched.contains_key(&pos) {
+            touched.entry(pos).or_insert_with(|| {
                 steps.push_back((pos, dist + 1));
-                touched.insert(pos, dist + 1);
-            }
+                dist + 1
+            });
         }
     }
     touched

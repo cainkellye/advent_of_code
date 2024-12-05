@@ -33,7 +33,7 @@ fn internal(input_file: &str, expansion: usize) -> usize {
         .sum::<usize>()
 }
 
-fn get_empty_rows_cols(space: &Vec<Vec<u8>>) -> (Vec<usize>, Vec<usize>) {
+fn get_empty_rows_cols(space: &[Vec<u8>]) -> (Vec<usize>, Vec<usize>) {
     let mut empty_rows = vec![];
     let mut empty_cols = vec![];
     let (rows, cols) = (space.len(), space[0].len());

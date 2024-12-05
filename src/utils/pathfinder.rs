@@ -45,7 +45,7 @@ pub trait Map<Data: Eq + Hash + Copy, Weight: PartialOrd + Copy> {
                 path_weight = weight;
                 continue;
             }
-            let next_steps = Self::get_valid_steps(&self, step);
+            let next_steps = Self::get_valid_steps(self, step);
             for next in next_steps {
                 let next_w = next.weight;
                 let pos = step_queue
